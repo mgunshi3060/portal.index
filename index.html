@@ -124,6 +124,37 @@ a{color:inherit;text-decoration:none;}
 .page-th{border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;background:#eceae4;position:relative;}
 .page-th canvas{width:100%;height:100%;object-fit:cover;}
 .page-num{position:absolute;bottom:4px;right:5px;font-size:9px;background:rgba(0,0,0,.4);color:white;padding:1px 5px;border-radius:3px;}
+
+/* BLOG */
+.blog-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .1s;margin-bottom:10px;display:flex;gap:0;}
+.blog-card:hover{border-color:var(--green);transform:translateY(-1px);}
+.blog-cover{width:120px;flex-shrink:0;background:#eceae4;object-fit:cover;}
+.blog-cover img{width:120px;height:100%;object-fit:cover;}
+.blog-body{padding:12px 14px;flex:1;min-width:0;}
+.blog-cat{font-size:10px;font-weight:600;border-radius:4px;padding:2px 7px;display:inline-block;margin-bottom:6px;}
+.blog-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.blog-snippet{font-size:12px;color:var(--text2);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.blog-footer{font-size:10px;color:var(--text3);margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.blog-tag{background:#f0f0f0;border-radius:3px;padding:1px 6px;font-size:10px;color:var(--text2);}
+
+/* FILES */
+.file-folder{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 12px;cursor:pointer;transition:border-color .15s,background .15s;text-align:center;}
+.file-folder:hover{border-color:var(--green);background:var(--green-l);}
+.file-folder-icon{font-size:32px;margin-bottom:6px;}
+.file-folder-name{font-size:12px;font-weight:600;line-height:1.3;word-break:break-all;}
+.file-folder-count{font-size:10px;color:var(--text3);margin-top:2px;}
+.file-pdf-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .1s;}
+.file-pdf-card:hover{border-color:var(--green);transform:translateY(-1px);}
+.file-pdf-thumb{aspect-ratio:3/4;background:#eceae4;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.file-pdf-thumb img{width:100%;height:100%;object-fit:cover;}
+.file-pdf-info{padding:5px 7px 7px;}
+.file-pdf-name{font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.file-pdf-date{font-size:9px;color:var(--text3);margin-top:2px;}
+.file-search-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:center;cursor:pointer;transition:border-color .15s;}
+.file-search-item:hover{border-color:var(--green);}
+.breadcrumb-btn{background:none;border:none;font-size:12px;color:var(--green);cursor:pointer;padding:3px 6px;border-radius:4px;}
+.breadcrumb-btn:hover{background:var(--green-l);}
+.breadcrumb-sep{color:var(--text3);font-size:12px;}
 </style>
 </head>
 <body>
@@ -200,22 +231,77 @@ a{color:inherit;text-decoration:none;}
   <div id="notice-list"><div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">お知らせがありません</div></div>
 </div>
 
-<!-- BLOG (stub) -->
+<!-- BLOG -->
 <div class="page" id="page-blog">
-  <div style="font-size:17px;font-weight:600;margin-bottom:16px;">社内ブログ</div>
-  <div style="color:var(--text2);text-align:center;padding:60px 0;">（ブログ機能は別途実装）</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:17px;font-weight:600;">社内ブログ</div>
+    <span style="font-size:11px;color:var(--text3)">投稿の新しい順に表示</span>
+  </div>
+  <div class="filter-row">
+    <input type="text" id="blog-search" placeholder="🔍 キーワード検索..." style="height:32px;border:0.5px solid var(--border);border-radius:20px;padding:0 14px;font-size:12px;outline:none;background:var(--surface);width:180px;" oninput="renderBlog()">
+    <button class="filter-btn active" onclick="filterBlog('all',this)">すべて</button>
+    <button class="filter-btn" onclick="filterBlog('announcement',this)">📢 告知</button>
+    <button class="filter-btn" onclick="filterBlog('report',this)">📝 報告</button>
+    <button class="filter-btn" onclick="filterBlog('event',this)">🎉 イベント</button>
+    <button class="filter-btn" onclick="filterBlog('other',this)">その他</button>
+  </div>
+  <div id="blog-list"><div style="color:var(--text3);font-size:13px;text-align:center;padding:60px 0;">ブログ記事がありません</div></div>
 </div>
 
-<!-- SECURITY (stub) -->
+<!-- BLOG DETAIL MODAL -->
+<div class="modal-bg" id="blog-modal" onclick="if(event.target===this)closeBlogModal()">
+  <div class="modal-box" style="width:min(700px,96vw);max-height:92vh;">
+    <div class="modal-hd">
+      <div style="flex:1">
+        <div class="modal-title" id="blog-modal-title"></div>
+        <div id="blog-modal-meta" style="font-size:11px;color:var(--text3);margin-top:3px;"></div>
+      </div>
+      <button class="modal-close" onclick="closeBlogModal()">✕</button>
+    </div>
+    <div id="blog-modal-img" style="display:none;"><img id="blog-modal-img-el" style="width:100%;max-height:320px;object-fit:cover;"></div>
+    <div id="blog-modal-body" style="padding:16px;font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;overflow-y:auto;max-height:50vh;"></div>
+    <div style="padding:10px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px;" id="blog-modal-tags"></div>
+  </div>
+</div>
+
+<!-- SECURITY -->
 <div class="page" id="page-security">
-  <div style="font-size:17px;font-weight:600;margin-bottom:16px;">セキュリティ情報</div>
-  <div style="color:var(--text2);text-align:center;padding:60px 0;">（セキュリティ情報は別途実装）</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:17px;font-weight:600;">セキュリティ情報</div>
+    <span style="font-size:11px;color:var(--text3)">日付の新しい順に表示</span>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterSec('all',this)">すべて</button>
+    <button class="filter-btn" onclick="filterSec('alert',this)">🚨 警報</button>
+    <button class="filter-btn" onclick="filterSec('guide',this)">📘 ガイド</button>
+    <button class="filter-btn" onclick="filterSec('update',this)">🔄 更新情報</button>
+  </div>
+  <div id="sec-list"><div style="color:var(--text3);font-size:13px;text-align:center;padding:60px 0;">セキュリティ情報がありません</div></div>
 </div>
 
-<!-- FILES (stub) -->
+<!-- FILES -->
 <div class="page" id="page-files">
-  <div style="font-size:17px;font-weight:600;margin-bottom:16px;">ファイル検索</div>
-  <div style="color:var(--text2);text-align:center;padding:60px 0;">（ファイル検索機能は別途実装）</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:17px;font-weight:600;">ファイル検索</div>
+    <div style="font-size:11px;color:var(--text3)" id="files-breadcrumb">/ ルート</div>
+  </div>
+  <!-- 検索バー -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+    <div style="position:relative;flex:1;">
+      <input type="text" id="file-search-input" placeholder="🔍 ファイル名・フォルダ名で検索..." style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 14px;font-size:13px;outline:none;background:var(--surface);" oninput="onFileSearch(this.value)">
+    </div>
+    <select id="file-type-filter" style="height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);outline:none;" onchange="onFileSearch(document.getElementById('file-search-input').value)">
+      <option value="">すべての種類</option>
+      <option value="pdf">PDF</option>
+      <option value="folder">フォルダ</option>
+    </select>
+  </div>
+  <!-- フォルダナビ -->
+  <div id="files-folder-nav" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+  <!-- ファイル一覧 -->
+  <div id="files-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;"></div>
+  <!-- 検索結果（フラット） -->
+  <div id="files-search-results" style="display:none;"></div>
 </div>
 
 <!-- PDF全ページモーダル -->
@@ -407,9 +493,361 @@ function refreshAll(){
   updateAlert();
 }
 
+// ========== BLOG ==========
+const BLOG_KEY='portal_blog';
+const BLOG_CAT={
+  announcement:{label:'📢 告知',bg:'#FAEEDA',color:'#854F0B'},
+  report:{label:'📝 報告',bg:'#E1F5EE',color:'#085041'},
+  event:{label:'🎉 イベント',bg:'#E6F1FB',color:'#185FA5'},
+  other:{label:'その他',bg:'#f0f0f0',color:'#555'}
+};
+let blogPosts=[];
+let blogFilter='all';
+
+function loadBlog(){
+  try{const r=localStorage.getItem(BLOG_KEY);blogPosts=r?JSON.parse(r):[];}
+  catch(e){blogPosts=[];}
+}
+
+function filterBlog(cat,btn){
+  blogFilter=cat;
+  document.querySelectorAll('#page-blog .filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderBlog();
+}
+
+function renderBlog(){
+  loadBlog();
+  const q=(document.getElementById('blog-search')||{}).value||'';
+  const el=document.getElementById('blog-list');
+  let posts=[...blogPosts].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(blogFilter!=='all') posts=posts.filter(p=>p.category===blogFilter);
+  if(q) posts=posts.filter(p=>p.title.includes(q)||p.body.includes(q)||(p.tags||[]).some(t=>t.includes(q)));
+  if(!posts.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:60px 0;">該当する記事がありません</div>';return;}
+  el.innerHTML=posts.map(p=>{
+    const cat=BLOG_CAT[p.category]||BLOG_CAT.other;
+    const dateStr=new Date(p.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    const tags=(p.tags||[]).map(t=>`<span class="blog-tag">#${t}</span>`).join(' ');
+    return `<div class="blog-card" onclick="openBlogModal('${p.id}')">
+      ${p.imageData?`<div class="blog-cover"><img src="${p.imageData}" alt=""></div>`:''}
+      <div class="blog-body">
+        <span class="blog-cat" style="background:${cat.bg};color:${cat.color}">${cat.label}</span>
+        <div class="blog-title">${p.title}</div>
+        <div class="blog-snippet">${p.body}</div>
+        <div class="blog-footer">
+          <span>✍ ${p.author||'管理者'}</span>
+          <span>${dateStr}</span>
+          ${tags}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  // ホームのブログ数も更新
+  document.querySelectorAll('.stat-val')[1].textContent=blogPosts.length;
+}
+
+function openBlogModal(id){
+  const p=blogPosts.find(x=>x.id===id);
+  if(!p) return;
+  const cat=BLOG_CAT[p.category]||BLOG_CAT.other;
+  const dateStr=new Date(p.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+  document.getElementById('blog-modal-title').textContent=p.title;
+  document.getElementById('blog-modal-meta').innerHTML=`<span class="blog-cat" style="background:${cat.bg};color:${cat.color};font-size:10px;padding:1px 6px;border-radius:3px;">${cat.label}</span> &nbsp;✍ ${p.author||'管理者'} &nbsp; ${dateStr}`;
+  const imgWrap=document.getElementById('blog-modal-img');
+  if(p.imageData){imgWrap.style.display='block';document.getElementById('blog-modal-img-el').src=p.imageData;}
+  else{imgWrap.style.display='none';}
+  document.getElementById('blog-modal-body').textContent=p.body;
+  document.getElementById('blog-modal-tags').innerHTML=(p.tags||[]).map(t=>`<span class="blog-tag">#${t}</span>`).join('');
+  document.getElementById('blog-modal').classList.add('open');
+}
+function closeBlogModal(){document.getElementById('blog-modal').classList.remove('open');}
+
+// ========== SECURITY ==========
+const SEC_KEY='portal_security';
+const SEC_CAT={
+  alert:{label:'🚨 警報',bg:'#FCEBEB',color:'#A32D2D',cls:'bs'},
+  guide:{label:'📘 ガイド',bg:'#E6F1FB',color:'#185FA5',cls:'bb'},
+  update:{label:'🔄 更新情報',bg:'#E1F5EE',color:'#085041',cls:'br'},
+  other:{label:'その他',bg:'#f0f0f0',color:'#555',cls:''}
+};
+let secDocs=[];
+let secFilter='all';
+
+function loadSec(){
+  try{const r=localStorage.getItem(SEC_KEY);secDocs=r?JSON.parse(r):[];}
+  catch(e){secDocs=[];}
+}
+
+function filterSec(cat,btn){
+  secFilter=cat;
+  document.querySelectorAll('#page-security .filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderSec();
+}
+
+function renderSec(){
+  loadSec();
+  const el=document.getElementById('sec-list');
+  let items=[...secDocs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(secFilter!=='all') items=items.filter(d=>d.tag===secFilter);
+  if(!items.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:60px 0;">セキュリティ情報がありません</div>';return;}
+  el.innerHTML=items.map(d=>{
+    const t=SEC_CAT[d.tag]||SEC_CAT.other;
+    const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    const isNew=(Date.now()-new Date(d.date).getTime())<86400000*3;
+    return `<div class="notice-card" onclick="openPdfModal('${d.id}','sec')">
+      <div class="notice-thumb" id="snt_${d.id}">
+        ${d.thumbData?`<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`:'<div class="ring"></div>'}
+      </div>
+      <div class="notice-body">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+          <span class="nbadge ${t.cls}">${t.label}</span>
+          <span class="pdf-icon-badge">📄 PDF</span>
+          ${isNew?'<span class="nbadge bs">NEW</span>':''}
+          ${d.urgent?'<span class="nbadge bs">⚠ 重要</span>':''}
+        </div>
+        <div class="notice-title">${d.name.replace(/\.pdf$/i,'')}</div>
+        <div class="notice-footer"><span>${dateStr}</span><span>${d.numPages||'?'}ページ</span></div>
+      </div>
+      <a class="notice-dl" href="${d.url}" download="${d.name}" onclick="event.stopPropagation()">⬇ DL</a>
+    </div>`;
+  }).join('');
+}
+
+// ========== FILES ==========
+const FILES_KEY='portal_files';
+let fileTree={};     // {folderPath: [{id,name,url,thumbData,numPages,date}]}
+let currentFolder='root';
+let folderPath=['root'];
+
+function loadFiles(){
+  try{const r=localStorage.getItem(FILES_KEY);fileTree=r?JSON.parse(r):{};}
+  catch(e){fileTree={};}
+}
+
+function getFolderList(){
+  // フォルダ = fileTreeのキー
+  return Object.keys(fileTree);
+}
+
+function getSubFolders(parent){
+  // 直下のサブフォルダのみ返す
+  const prefix=parent==='root'?'':parent+'/';
+  return getFolderList().filter(k=>{
+    if(parent==='root') return !k.includes('/');
+    return k.startsWith(prefix) && k.slice(prefix.length).split('/').length===1 && k!==parent;
+  });
+}
+
+function getFilesInFolder(folder){
+  return fileTree[folder]||[];
+}
+
+function renderFiles(){
+  loadFiles();
+  const searchQ=document.getElementById('file-search-input').value;
+  if(searchQ){onFileSearch(searchQ);return;}
+  document.getElementById('files-search-results').style.display='none';
+  document.getElementById('files-grid').style.display='grid';
+
+  // パンくず
+  renderBreadcrumb();
+
+  // フォルダ＋ファイルを描画
+  const grid=document.getElementById('files-grid');
+  const subFolders=getSubFolders(currentFolder);
+  const files=getFilesInFolder(currentFolder);
+
+  let html='';
+  // 戻るボタン（ルート以外）
+  if(folderPath.length>1){
+    html+=`<div class="file-folder" onclick="navigateUp()" title="上へ">
+      <div class="file-folder-icon">⬆️</div>
+      <div class="file-folder-name">上へ戻る</div>
+    </div>`;
+  }
+  // サブフォルダ
+  subFolders.forEach(f=>{
+    const name=f.includes('/')?f.slice(f.lastIndexOf('/')+1):f;
+    const count=(fileTree[f]||[]).length;
+    html+=`<div class="file-folder" onclick="navigateFolder('${f}')">
+      <div class="file-folder-icon">📁</div>
+      <div class="file-folder-name">${name}</div>
+      <div class="file-folder-count">${count}件</div>
+    </div>`;
+  });
+  grid.innerHTML=html;
+
+  // PDFカード
+  files.forEach(d=>{
+    const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    const card=document.createElement('div');
+    card.className='file-pdf-card';
+    card.onclick=()=>openPdfModal(d.id,'file');
+    card.innerHTML=`<div class="file-pdf-thumb">
+      ${d.thumbData?`<img src="${d.thumbData}">`:'<span style="font-size:24px">📄</span>'}
+    </div>
+    <div class="file-pdf-info">
+      <div class="file-pdf-name">${d.name.replace(/\.pdf$/i,'')}</div>
+      <div class="file-pdf-date">${dateStr}</div>
+    </div>`;
+    grid.appendChild(card);
+  });
+
+  if(!subFolders.length && !files.length && folderPath.length===1){
+    grid.innerHTML+='<div style="grid-column:1/-1;color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">ファイルがありません</div>';
+  }
+
+  // ホームのファイル数更新
+  const total=Object.values(fileTree).reduce((s,a)=>s+a.length,0);
+  document.querySelectorAll('.stat-val')[2].textContent=total;
+}
+
+function navigateFolder(folder){
+  currentFolder=folder;
+  const name=folder.includes('/')?folder.slice(folder.lastIndexOf('/')+1):folder;
+  folderPath=[...folderPath,name];
+  renderFiles();
+}
+
+function navigateUp(){
+  folderPath.pop();
+  if(folderPath.length===1){currentFolder='root';}
+  else{
+    // 親フォルダのキーを再構築
+    const allFolders=getFolderList();
+    const targetName=folderPath[folderPath.length-1];
+    currentFolder=allFolders.find(f=>{
+      const n=f.includes('/')?f.slice(f.lastIndexOf('/')+1):f;
+      return n===targetName;
+    })||'root';
+  }
+  renderFiles();
+}
+
+function navigateTo(idx){
+  folderPath=folderPath.slice(0,idx+1);
+  if(idx===0){currentFolder='root';}
+  else{
+    const targetName=folderPath[idx];
+    currentFolder=Object.keys(fileTree).find(f=>{
+      const n=f.includes('/')?f.slice(f.lastIndexOf('/')+1):f;
+      return n===targetName;
+    })||'root';
+  }
+  renderFiles();
+}
+
+function renderBreadcrumb(){
+  const el=document.getElementById('files-breadcrumb');
+  el.innerHTML=folderPath.map((name,i)=>{
+    const label=i===0?'ルート':name;
+    if(i===folderPath.length-1) return `<span style="color:var(--text);font-size:12px;font-weight:600;">${label}</span>`;
+    return `<button class="breadcrumb-btn" onclick="navigateTo(${i})">${label}</button><span class="breadcrumb-sep"> / </span>`;
+  }).join('');
+}
+
+function onFileSearch(q){
+  const typeFilter=(document.getElementById('file-type-filter')||{}).value||'';
+  if(!q && !typeFilter){
+    document.getElementById('files-search-results').style.display='none';
+    document.getElementById('files-grid').style.display='grid';
+    renderFiles();
+    return;
+  }
+  document.getElementById('files-grid').style.display='none';
+  const sr=document.getElementById('files-search-results');
+  sr.style.display='block';
+  loadFiles();
+
+  let results=[];
+  // フォルダ検索
+  if(!typeFilter||typeFilter==='folder'){
+    getFolderList().forEach(f=>{
+      const name=f.includes('/')?f.slice(f.lastIndexOf('/')+1):f;
+      if(!q||name.includes(q)) results.push({type:'folder',name,path:f,count:(fileTree[f]||[]).length});
+    });
+  }
+  // ファイル検索
+  if(!typeFilter||typeFilter==='pdf'){
+    Object.entries(fileTree).forEach(([folder,files])=>{
+      files.forEach(d=>{
+        if(!q||d.name.includes(q)){
+          const folderName=folder==='root'?'ルート':(folder.includes('/')?folder.slice(folder.lastIndexOf('/')+1):folder);
+          results.push({type:'file',doc:d,folder,folderName});
+        }
+      });
+    });
+  }
+
+  if(!results.length){sr.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">該当するファイルが見つかりません</div>';return;}
+
+  sr.innerHTML=results.map(r=>{
+    if(r.type==='folder') return `<div class="file-search-item" onclick="navigateFolder('${r.path}');document.getElementById('file-search-input').value='';onFileSearch('')">
+      <span style="font-size:28px;">📁</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;">${r.name}</div><div style="font-size:10px;color:var(--text3);">フォルダ &middot; ${r.count}件</div></div>
+    </div>`;
+    const d=r.doc;
+    const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    return `<div class="file-search-item" onclick="openPdfModal('${d.id}','file')">
+      <div style="width:36px;height:48px;background:#eceae4;border-radius:4px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${d.thumbData?`<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`:'📄'}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name.replace(/\.pdf$/i,'')}</div>
+        <div style="font-size:10px;color:var(--text3);">📁 ${r.folderName} &middot; ${dateStr} &middot; ${d.numPages||'?'}ページ</div>
+      </div>
+      <a class="notice-dl" href="${d.url}" download="${d.name}" onclick="event.stopPropagation()">⬇ DL</a>
+    </div>`;
+  }).join('');
+}
+
+// openPdfModal を拡張してsec/fileにも対応
+const _origOpenPdfModal=openPdfModal;
+function openPdfModal(id, src){
+  let d;
+  if(src==='sec'){d=secDocs.find(x=>x.id===id);}
+  else if(src==='file'){
+    for(const files of Object.values(fileTree)){const f=files.find(x=>x.id===id);if(f){d=f;break;}}
+  } else {d=docs.find(x=>x.id===id);}
+  if(!d) return;
+  document.getElementById('pdf-modal-title').textContent=d.name.replace(/\.pdf$/i,'');
+  const mp=document.getElementById('pdf-modal-pages');
+  mp.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text2);">読み込み中...</div>';
+  document.getElementById('pdf-modal').classList.add('open');
+  (async()=>{
+    try{
+      const pdfDoc=await pdfjsLib.getDocument(d.url).promise;
+      mp.innerHTML='';
+      for(let i=1;i<=pdfDoc.numPages;i++){
+        const wrap=document.createElement('div');wrap.className='page-th';
+        wrap.innerHTML='<div class="ring"></div>';
+        mp.appendChild(wrap);
+        const page=await pdfDoc.getPage(i);
+        const vp=page.getViewport({scale:1.2});
+        const canvas=document.createElement('canvas');
+        canvas.width=vp.width;canvas.height=vp.height;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+        wrap.innerHTML=`<span class="page-num">${i}/${pdfDoc.numPages}</span>`;
+        wrap.appendChild(canvas);
+      }
+    }catch(e){
+      mp.innerHTML='<div style="grid-column:1/-1;color:red;padding:20px;text-align:center;">PDFを読み込めませんでした</div>';
+    }
+  })();
+}
+
 refreshAll();
+loadBlog(); renderBlog();
+loadSec(); renderSec();
+loadFiles(); renderFiles();
 // ストレージ変更をリアルタイム検知（別タブ管理者が更新した場合）
-window.addEventListener('storage',e=>{if(e.key===STORE_KEY)refreshAll();});
+window.addEventListener('storage',e=>{
+  if(e.key===STORE_KEY) refreshAll();
+  if(e.key===BLOG_KEY){loadBlog();renderBlog();}
+  if(e.key===SEC_KEY){loadSec();renderSec();}
+  if(e.key===FILES_KEY){loadFiles();renderFiles();}
+});
 </script>
 </body>
 </html>
