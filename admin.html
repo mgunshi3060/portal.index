@@ -156,16 +156,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sb-section">メニュー</div>
-      <button class="sb-item active" onclick="showAdmin('upload',this)">📤 お知らせPDF</button>
-      <button class="sb-item" onclick="showAdmin('manage',this)">📋 お知らせ管理</button>
-      <div class="sb-sep"></div>
-      <button class="sb-item" onclick="showAdmin('blog-edit',this)">✏️ ブログ投稿</button>
-      <button class="sb-item" onclick="showAdmin('blog-manage',this)">📰 ブログ管理</button>
-      <div class="sb-sep"></div>
-      <button class="sb-item" onclick="showAdmin('sec-upload',this)">🔒 セキュリティPDF</button>
-      <button class="sb-item" onclick="showAdmin('sec-manage',this)">🛡 セキュリティ管理</button>
-      <div class="sb-sep"></div>
-      <button class="sb-item" onclick="showAdmin('files-manage',this)">🗂 ファイル管理</button>
+      <button class="sb-item active" onclick="showAdmin('upload',this)">📤 PDFアップロード</button>
+      <button class="sb-item" onclick="showAdmin('manage',this)">📋 ドキュメント管理</button>
+      <button class="sb-item" onclick="showAdmin('blog',this)">✏️ ブログ管理</button>
       <div class="sb-sep"></div>
       <div class="sb-section">設定</div>
       <button class="sb-item" onclick="showAdmin('settings',this)">⚙ サイト設定</button>
@@ -251,6 +244,38 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
         </table>
       </div>
 
+      <!-- BLOG MANAGE PAGE -->
+      <div class="admin-page" id="ap-blog">
+        <div class="page-title">✏️ ブログ管理</div>
+        <div style="font-size:12px;color:var(--text2);background:var(--blue-l);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;">
+          💡 ブログ投稿は誰でも行えます。管理者はここから不適切な投稿を削除できます。
+        </div>
+        <div class="manage-toolbar">
+          <input class="manage-search" type="text" placeholder="タイトル・投稿者で検索..." oninput="renderBlogManage(this.value)">
+          <select class="tag-filter" onchange="renderBlogManage(document.querySelector('.manage-search').value,this.value)" id="blog-cat-filter">
+            <option value="">すべてのカテゴリ</option>
+            <option value="tech">💡 技術・IT</option>
+            <option value="report">🏭 現場レポート</option>
+            <option value="idea">💭 アイデア</option>
+            <option value="event">🎉 イベント</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th style="width:60px">カバー</th>
+              <th>タイトル</th>
+              <th style="width:100px">カテゴリ</th>
+              <th style="width:90px">投稿者</th>
+              <th style="width:90px">投稿日</th>
+              <th style="width:80px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="blog-manage-tbody"></tbody>
+        </table>
+      </div>
+
       <!-- SETTINGS PAGE -->
       <div class="admin-page" id="ap-settings">
         <div class="page-title">⚙ サイト設定</div>
@@ -287,179 +312,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           <button class="upload-btn" onclick="changePassword()">パスワードを変更</button>
           <div id="pw-msg" style="margin-top:10px;font-size:12px;"></div>
         </div>
-      </div>
-
-      <!-- BLOG EDIT PAGE -->
-      <div class="admin-page" id="ap-blog-edit">
-        <div class="page-title">✏️ ブログ投稿</div>
-        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:640px;">
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>タイトル <span style="color:var(--red)">*</span></label>
-            <input type="text" id="blog-title" placeholder="記事タイトルを入力" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-          </div>
-          <div class="form-row" style="margin-bottom:12px;">
-            <div class="form-group">
-              <label>カテゴリ</label>
-              <select id="blog-category" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);">
-                <option value="announcement">📢 告知</option>
-                <option value="report">📝 報告</option>
-                <option value="event">🎉 イベント</option>
-                <option value="other">その他</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>著者名</label>
-              <input type="text" id="blog-author" placeholder="山田 太郎" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-            </div>
-            <div class="form-group">
-              <label>投稿日</label>
-              <input type="date" id="blog-date" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>タグ（カンマ区切り）</label>
-            <input type="text" id="blog-tags" placeholder="例: 業務改善, IT, お知らせ" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-          </div>
-          <div class="form-group" style="margin-bottom:12px;">
-            <label>サムネイル画像（任意）</label>
-            <div style="display:flex;gap:10px;align-items:center;">
-              <input type="file" id="blog-image-input" accept="image/*" style="font-size:12px;" onchange="onBlogImageSelect(event)">
-              <div id="blog-image-preview" style="display:none;width:80px;height:60px;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border);">
-                <img id="blog-image-el" style="width:100%;height:100%;object-fit:cover;">
-              </div>
-              <button onclick="clearBlogImage()" id="blog-image-clear" style="display:none;font-size:11px;color:var(--red);border:0.5px solid var(--red);background:none;border-radius:4px;padding:3px 8px;cursor:pointer;">クリア</button>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:16px;">
-            <label>本文 <span style="color:var(--red)">*</span></label>
-            <textarea id="blog-body" rows="8" placeholder="記事の内容を入力してください..." style="width:100%;border:0.5px solid var(--border);border-radius:var(--radius);padding:10px;font-size:13px;line-height:1.7;resize:vertical;font-family:inherit;"></textarea>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;">
-            <button class="upload-btn" onclick="saveBlogPost()">✓ 投稿する</button>
-            <button onclick="clearBlogForm()" style="height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 16px;font-size:13px;background:none;cursor:pointer;">クリア</button>
-            <div id="blog-edit-msg" style="font-size:12px;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BLOG MANAGE PAGE -->
-      <div class="admin-page" id="ap-blog-manage">
-        <div class="page-title">📰 ブログ管理</div>
-        <div class="manage-toolbar">
-          <input class="manage-search" type="text" placeholder="タイトルで検索..." oninput="renderBlogManage(this.value)">
-          <select class="tag-filter" onchange="renderBlogManage(document.querySelector('#ap-blog-manage .manage-search').value,this.value)">
-            <option value="">すべてのカテゴリ</option>
-            <option value="announcement">告知</option>
-            <option value="report">報告</option>
-            <option value="event">イベント</option>
-            <option value="other">その他</option>
-          </select>
-        </div>
-        <table class="doc-table">
-          <thead><tr>
-            <th style="width:50px">画像</th>
-            <th>タイトル</th>
-            <th style="width:90px">カテゴリ</th>
-            <th style="width:80px">著者</th>
-            <th style="width:90px">投稿日</th>
-            <th style="width:80px">操作</th>
-          </tr></thead>
-          <tbody id="blog-manage-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- SECURITY UPLOAD PAGE -->
-      <div class="admin-page" id="ap-sec-upload">
-        <div class="page-title">🔒 セキュリティPDFアップロード</div>
-        <div class="upload-zone" id="sec-upload-zone" onclick="document.getElementById('sec-upload-input').click()" ondragover="onDragOver2(event)" ondragleave="onDragLeave2(event)" ondrop="onDrop2(event)">
-          <input type="file" id="sec-upload-input" accept=".pdf" multiple onchange="onSecFileSelect(event)">
-          <div class="upload-zone-icon">🔒</div>
-          <div class="upload-zone-text">PDFをドラッグ＆ドロップ またはクリック</div>
-          <div class="upload-zone-sub">セキュリティ情報 PDF</div>
-        </div>
-        <div id="sec-pending-list"></div>
-        <div class="meta-form" id="sec-meta-form" style="display:none">
-          <div class="form-row">
-            <div class="form-group">
-              <label>カテゴリ</label>
-              <select id="sec-tag" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);">
-                <option value="alert">🚨 警報</option>
-                <option value="guide">📘 ガイド</option>
-                <option value="update">🔄 更新情報</option>
-                <option value="other">その他</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>公開日</label>
-              <input type="date" id="sec-date" style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-            </div>
-            <div class="form-group">
-              <label style="opacity:0">　</label>
-              <div class="urgent-row">
-                <input type="checkbox" id="sec-urgent">
-                <label for="sec-urgent">⚠ 重要</label>
-              </div>
-            </div>
-          </div>
-          <button class="upload-btn" id="sec-upload-btn" onclick="doSecUpload()"><span>✓ アップロード</span></button>
-        </div>
-      </div>
-
-      <!-- SECURITY MANAGE PAGE -->
-      <div class="admin-page" id="ap-sec-manage">
-        <div class="page-title">🛡 セキュリティ管理</div>
-        <div class="manage-toolbar">
-          <input class="manage-search" type="text" placeholder="ファイル名で検索..." oninput="renderSecManage(this.value)">
-        </div>
-        <table class="doc-table">
-          <thead><tr>
-            <th style="width:50px">プレビュー</th>
-            <th>ファイル名</th>
-            <th style="width:100px">カテゴリ</th>
-            <th style="width:90px">公開日</th>
-            <th style="width:60px">ページ数</th>
-            <th style="width:120px">操作</th>
-          </tr></thead>
-          <tbody id="sec-manage-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- FILES MANAGE PAGE -->
-      <div class="admin-page" id="ap-files-manage">
-        <div class="page-title">🗂 ファイル管理</div>
-        <!-- フォルダ作成 -->
-        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2);">📁 フォルダ作成</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="text" id="new-folder-name" placeholder="フォルダ名（例: 2024年度 / 経費）" style="flex:1;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;">
-            <select id="parent-folder" style="height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);">
-              <option value="root">ルート（直下）</option>
-            </select>
-            <button class="upload-btn" onclick="createFolder()" style="white-space:nowrap;">+ 作成</button>
-          </div>
-          <div style="margin-top:10px;font-size:11px;color:var(--text3);">ヒント: 親フォルダを選んでサブフォルダも作れます。例: ルート→「2024年度」→「経費」</div>
-        </div>
-        <!-- ファイルアップロード -->
-        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2);">📤 PDFアップロード先フォルダを選択</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px;">
-            <select id="file-upload-folder" style="flex:1;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);">
-              <option value="root">ルート</option>
-            </select>
-          </div>
-          <div class="upload-zone" id="file-upload-zone" onclick="document.getElementById('file-upload-input').click()" ondragover="onDragOver3(event)" ondragleave="onDragLeave3(event)" ondrop="onDrop3(event)">
-            <input type="file" id="file-upload-input" accept=".pdf" multiple onchange="onFileUploadSelect(event)">
-            <div class="upload-zone-icon">📂</div>
-            <div class="upload-zone-text">PDFをドラッグ＆ドロップ またはクリック</div>
-          </div>
-          <div id="file-pending-list"></div>
-          <div id="file-upload-actions" style="display:none;margin-top:10px;">
-            <button class="upload-btn" onclick="doFileUpload()"><span>✓ アップロード</span></button>
-          </div>
-        </div>
-        <!-- フォルダ・ファイル一覧 -->
-        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2);">📋 フォルダ・ファイル一覧</div>
-        <div id="admin-file-tree"></div>
       </div>
 
     </main>
@@ -545,13 +397,14 @@ function updateSbCount(){
   document.getElementById('sb-count').textContent=docs.length;
 }
 
-// ===== SIDEBAR NAV (see extended version below) =====
-function _showAdminLegacy(id,btn){
+// ===== SIDEBAR NAV =====
+function showAdmin(id,btn){
   document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('ap-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='manage') renderManage();
+  if(id==='blog'){ loadBlogDocs(); renderBlogManage(); }
 }
 
 // ===== UPLOAD =====
@@ -685,347 +538,66 @@ function saveSettings(){
   showToast('設定を保存しました（デモ）');
 }
 
-// ===== BLOG =====
-const BLOG_KEY='portal_blog';
-const BLOG_CAT={announcement:{label:'📢 告知'},report:{label:'📝 報告'},event:{label:'🎉 イベント'},other:{label:'その他'}};
-let blogPosts=[];
-let blogImageData=null;
+// ===== BLOG MANAGE =====
+const BLOG_KEY='portal_blogs';
+const BLOG_CAT={
+  tech:{label:'💡 技術・IT',cls:'bb'},
+  report:{label:'🏭 現場レポート',cls:'br'},
+  idea:{label:'💭 アイデア',cls:'bn'},
+  event:{label:'🎉 イベント',cls:'bs'},
+  other:{label:'その他',cls:''}
+};
+let blogDocs=[];
+function loadBlogDocs(){
+  try{ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; }catch(e){ blogDocs=[]; }
+}
+function saveBlogDocs(){ localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs)); }
 
-function loadBlogPosts(){
-  try{const r=localStorage.getItem(BLOG_KEY);blogPosts=r?JSON.parse(r):[];}catch(e){blogPosts=[];}
-}
-function saveBlogPosts(){localStorage.setItem(BLOG_KEY,JSON.stringify(blogPosts));}
-
-function onBlogImageSelect(e){
-  const file=e.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    blogImageData=ev.target.result;
-    document.getElementById('blog-image-el').src=blogImageData;
-    document.getElementById('blog-image-preview').style.display='block';
-    document.getElementById('blog-image-clear').style.display='inline-block';
-  };
-  reader.readAsDataURL(file);
-}
-function clearBlogImage(){
-  blogImageData=null;
-  document.getElementById('blog-image-input').value='';
-  document.getElementById('blog-image-preview').style.display='none';
-  document.getElementById('blog-image-clear').style.display='none';
-}
-function clearBlogForm(){
-  ['blog-title','blog-author','blog-tags','blog-body'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('blog-date').value=new Date().toISOString().slice(0,10);
-  clearBlogImage();
-  document.getElementById('blog-edit-msg').textContent='';
-}
-
-function saveBlogPost(){
-  const title=document.getElementById('blog-title').value.trim();
-  const body=document.getElementById('blog-body').value.trim();
-  const msg=document.getElementById('blog-edit-msg');
-  if(!title||!body){msg.style.color='#a32d2d';msg.textContent='タイトルと本文は必須です';return;}
-  const id='blog_'+Date.now();
-  const post={
-    id,
-    title,
-    body,
-    category:document.getElementById('blog-category').value,
-    author:document.getElementById('blog-author').value.trim()||'管理者',
-    date:document.getElementById('blog-date').value||new Date().toISOString().slice(0,10),
-    tags:document.getElementById('blog-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
-    imageData:blogImageData
-  };
-  loadBlogPosts();
-  blogPosts.unshift(post);
-  saveBlogPosts();
-  showToast('ブログを投稿しました ✓');
-  clearBlogForm();
-}
-
-function renderBlogManage(q='',cat=''){
-  loadBlogPosts();
+function renderBlogManage(q='',catFilter=''){
+  loadBlogDocs();
   const tbody=document.getElementById('blog-manage-tbody');
-  let list=[...blogPosts];
-  if(q) list=list.filter(p=>p.title.includes(q));
-  if(cat) list=list.filter(p=>p.category===cat);
-  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">記事がありません</td></tr>';return;}
-  tbody.innerHTML=list.map(p=>{
-    const cat=BLOG_CAT[p.category]||BLOG_CAT.other;
+  let list=[...blogDocs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(q) list=list.filter(b=>b.title.includes(q)||b.author.includes(q));
+  if(catFilter) list=list.filter(b=>b.category===catFilter);
+  if(!list.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">ブログ投稿がありません</td></tr>';
+    return;
+  }
+  tbody.innerHTML=list.map(b=>{
+    const cat=BLOG_CAT[b.category]||BLOG_CAT.other;
+    const dateStr=new Date(b.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    const coverHTML=b.imageData
+      ?`<div class="doc-thumb-cell"><img src="${b.imageData}"></div>`
+      :`<div class="doc-thumb-cell" style="font-size:18px;">📝</div>`;
     return `<tr>
-      <td><div class="doc-thumb-cell">${p.imageData?`<img src="${p.imageData}">`:'✏️'}</div></td>
-      <td style="font-size:13px;font-weight:600;">${p.title}</td>
-      <td><span class="nbadge bb">${cat.label}</span></td>
-      <td style="font-size:12px;color:var(--text2);">${p.author}</td>
-      <td style="font-size:12px;color:var(--text2);">${p.date}</td>
-      <td><button class="action-btn action-del" onclick="deleteBlog('${p.id}')">削除</button></td>
+      <td>${coverHTML}</td>
+      <td>
+        <div style="font-size:13px;font-weight:600;line-height:1.4;">${escHtmlAdmin(b.title)}</div>
+        ${b.tags&&b.tags.length?'<div style="margin-top:3px;">'+b.tags.map(t=>`<span style="font-size:10px;border:0.5px solid rgba(0,0,0,.1);border-radius:20px;padding:1px 6px;margin-right:4px;color:var(--text2);">#${t}</span>`).join('')+'</div>':''}
+      </td>
+      <td>${cat.cls?`<span class="nbadge ${cat.cls}">${cat.label}</span>`:cat.label}</td>
+      <td style="font-size:12px;color:var(--text2);">${escHtmlAdmin(b.author)}</td>
+      <td style="font-size:12px;color:var(--text2);">${dateStr}</td>
+      <td><button class="action-btn action-del" onclick="deleteBlog('${b.id}')">削除</button></td>
     </tr>`;
   }).join('');
 }
 
 function deleteBlog(id){
-  if(!confirm('この記事を削除しますか？')) return;
-  loadBlogPosts();
-  blogPosts=blogPosts.filter(p=>p.id!==id);
-  saveBlogPosts();
-  renderBlogManage();
-  showToast('削除しました');
+  if(!confirm('この投稿を削除しますか？')) return;
+  blogDocs=blogDocs.filter(b=>b.id!==id);
+  saveBlogDocs();
+  renderBlogManage(
+    document.querySelector('.manage-search')?document.querySelector('.manage-search').value:'',
+    document.getElementById('blog-cat-filter')?document.getElementById('blog-cat-filter').value:''
+  );
+  showToast('ブログ投稿を削除しました');
 }
 
-// ===== SECURITY =====
-const SEC_KEY='portal_security';
-const SEC_CAT_ADMIN={alert:{label:'🚨 警報',cls:'bs'},guide:{label:'📘 ガイド',cls:'bb'},update:{label:'🔄 更新情報',cls:'br'},other:{label:'その他',cls:''}};
-let secDocs=[];
-let secPendingFiles=[];
+function escHtmlAdmin(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function loadSecDocs(){try{const r=localStorage.getItem(SEC_KEY);secDocs=r?JSON.parse(r):[];}catch(e){secDocs=[];}}
-function saveSecDocs(){localStorage.setItem(SEC_KEY,JSON.stringify(secDocs));}
-
-function onDragOver2(e){e.preventDefault();document.getElementById('sec-upload-zone').classList.add('drag');}
-function onDragLeave2(e){document.getElementById('sec-upload-zone').classList.remove('drag');}
-function onDrop2(e){e.preventDefault();document.getElementById('sec-upload-zone').classList.remove('drag');handleSecFiles([...e.dataTransfer.files].filter(f=>f.type==='application/pdf'));}
-function onSecFileSelect(e){handleSecFiles([...e.target.files]);e.target.value='';}
-
-async function handleSecFiles(files){
-  for(const f of files){
-    const url=URL.createObjectURL(f);
-    const pdf=await pdfjsLib.getDocument(url).promise;
-    const page=await pdf.getPage(1);
-    const vp=page.getViewport({scale:0.7});
-    const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
-    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    secPendingFiles.push({name:f.name,url,numPages:pdf.numPages,thumbData:canvas.toDataURL('image/jpeg',0.7)});
-  }
-  renderSecPending();
-  document.getElementById('sec-meta-form').style.display=secPendingFiles.length?'block':'none';
-}
-
-function renderSecPending(){
-  const el=document.getElementById('sec-pending-list');
-  if(!secPendingFiles.length){el.innerHTML='';return;}
-  el.innerHTML=secPendingFiles.map((f,i)=>`
-    <div class="pending-item">
-      <div class="pending-thumb"><img src="${f.thumbData}" style="width:100%;height:100%;object-fit:cover;"></div>
-      <div style="flex:1"><div class="pending-name">${f.name}</div><div class="pending-pages">${f.numPages}ページ</div></div>
-      <button class="btn-remove" onclick="removeSecPending(${i})">削除</button>
-    </div>`).join('');
-}
-
-function removeSecPending(i){secPendingFiles.splice(i,1);renderSecPending();if(!secPendingFiles.length)document.getElementById('sec-meta-form').style.display='none';}
-
-async function doSecUpload(){
-  if(!secPendingFiles.length) return;
-  const tag=document.getElementById('sec-tag').value;
-  const date=document.getElementById('sec-date').value||new Date().toISOString().slice(0,10);
-  const urgent=document.getElementById('sec-urgent').checked;
-  loadSecDocs();
-  for(let i=0;i<secPendingFiles.length;i++){
-    const f=secPendingFiles[i];
-    secDocs.unshift({id:'sec_'+Date.now()+'_'+i,name:f.name,tag,date,urgent,url:f.url,numPages:f.numPages,thumbData:f.thumbData});
-  }
-  saveSecDocs();
-  showToast(`${secPendingFiles.length}件アップロードしました ✓`);
-  secPendingFiles=[];renderSecPending();
-  document.getElementById('sec-meta-form').style.display='none';
-}
-
-function renderSecManage(q=''){
-  loadSecDocs();
-  const tbody=document.getElementById('sec-manage-tbody');
-  let list=[...secDocs].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  if(q) list=list.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()));
-  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px;">データがありません</td></tr>';return;}
-  tbody.innerHTML=list.map(d=>{
-    const t=SEC_CAT_ADMIN[d.tag]||SEC_CAT_ADMIN.other;
-    return `<tr>
-      <td><div class="doc-thumb-cell">${d.thumbData?`<img src="${d.thumbData}">`:'📄'}</div></td>
-      <td style="font-size:13px;font-weight:600;">${d.name}${d.urgent?'<span class="urgent-mark" style="margin-left:6px;">⚠ 重要</span>':''}</td>
-      <td><span class="nbadge ${t.cls}">${t.label}</span></td>
-      <td style="font-size:12px;color:var(--text2);">${d.date}</td>
-      <td style="font-size:12px;color:var(--text2);text-align:center;">${d.numPages||'?'}</td>
-      <td><button class="action-btn action-del" onclick="deleteSecDoc('${d.id}')">削除</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function deleteSecDoc(id){
-  if(!confirm('削除しますか？')) return;
-  loadSecDocs();secDocs=secDocs.filter(d=>d.id!==id);saveSecDocs();renderSecManage();showToast('削除しました');
-}
-
-// ===== FILES =====
-const FILES_KEY='portal_files';
-let fileTree={};
-let filePendingFiles=[];
-
-function loadFileTree(){try{const r=localStorage.getItem(FILES_KEY);fileTree=r?JSON.parse(r):{};}catch(e){fileTree={};}}
-function saveFileTree(){localStorage.setItem(FILES_KEY,JSON.stringify(fileTree));}
-
-function updateFolderSelects(){
-  loadFileTree();
-  const folders=Object.keys(fileTree);
-  ['parent-folder','file-upload-folder'].forEach(id=>{
-    const sel=document.getElementById(id);
-    const val=sel.value;
-    sel.innerHTML='<option value="root">ルート（直下）</option>';
-    folders.forEach(f=>{
-      const name=f.includes('/')?f:f;
-      const opt=document.createElement('option');opt.value=f;opt.textContent='📁 '+f;
-      sel.appendChild(opt);
-    });
-    sel.value=val;
-  });
-}
-
-function createFolder(){
-  const name=document.getElementById('new-folder-name').value.trim();
-  if(!name){showToast('フォルダ名を入力してください');return;}
-  const parent=document.getElementById('parent-folder').value;
-  const key=parent==='root'?name:parent+'/'+name;
-  loadFileTree();
-  if(fileTree[key]!==undefined){showToast('同名のフォルダが既に存在します');return;}
-  fileTree[key]=[];
-  saveFileTree();
-  document.getElementById('new-folder-name').value='';
-  updateFolderSelects();
-  renderAdminFileTree();
-  showToast(`フォルダ「${name}」を作成しました ✓`);
-}
-
-function onDragOver3(e){e.preventDefault();document.getElementById('file-upload-zone').classList.add('drag');}
-function onDragLeave3(e){document.getElementById('file-upload-zone').classList.remove('drag');}
-function onDrop3(e){e.preventDefault();document.getElementById('file-upload-zone').classList.remove('drag');handleFilePending([...e.dataTransfer.files].filter(f=>f.type==='application/pdf'));}
-function onFileUploadSelect(e){handleFilePending([...e.target.files]);e.target.value='';}
-
-async function handleFilePending(files){
-  for(const f of files){
-    const url=URL.createObjectURL(f);
-    const pdf=await pdfjsLib.getDocument(url).promise;
-    const page=await pdf.getPage(1);
-    const vp=page.getViewport({scale:0.7});
-    const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
-    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    filePendingFiles.push({name:f.name,url,numPages:pdf.numPages,thumbData:canvas.toDataURL('image/jpeg',0.7)});
-  }
-  renderFilePending();
-  document.getElementById('file-upload-actions').style.display=filePendingFiles.length?'block':'none';
-}
-
-function renderFilePending(){
-  const el=document.getElementById('file-pending-list');
-  if(!filePendingFiles.length){el.innerHTML='';return;}
-  el.innerHTML=filePendingFiles.map((f,i)=>`
-    <div class="pending-item" style="margin-top:8px;">
-      <div class="pending-thumb"><img src="${f.thumbData}" style="width:100%;height:100%;object-fit:cover;"></div>
-      <div style="flex:1"><div class="pending-name">${f.name}</div><div class="pending-pages">${f.numPages}ページ</div></div>
-      <button class="btn-remove" onclick="removeFilePending(${i})">削除</button>
-    </div>`).join('');
-}
-
-function removeFilePending(i){filePendingFiles.splice(i,1);renderFilePending();if(!filePendingFiles.length)document.getElementById('file-upload-actions').style.display='none';}
-
-async function doFileUpload(){
-  if(!filePendingFiles.length) return;
-  const folder=document.getElementById('file-upload-folder').value||'root';
-  loadFileTree();
-  if(!fileTree[folder] && folder!=='root') fileTree[folder]=[];
-  if(folder==='root'){
-    if(!fileTree['root']) fileTree['root']=[];
-  }
-  const key=folder==='root'?'root':folder;
-  if(!fileTree[key]) fileTree[key]=[];
-  for(let i=0;i<filePendingFiles.length;i++){
-    const f=filePendingFiles[i];
-    fileTree[key].push({id:'file_'+Date.now()+'_'+i,name:f.name,url:f.url,numPages:f.numPages,thumbData:f.thumbData,date:new Date().toISOString().slice(0,10)});
-  }
-  saveFileTree();
-  showToast(`${filePendingFiles.length}件アップロードしました ✓`);
-  filePendingFiles=[];renderFilePending();
-  document.getElementById('file-upload-actions').style.display='none';
-  renderAdminFileTree();
-}
-
-function renderAdminFileTree(){
-  loadFileTree();
-  const el=document.getElementById('admin-file-tree');
-  const folders=Object.keys(fileTree);
-  if(!folders.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0;">フォルダがありません。上で作成してください。</div>';return;}
-  // ルートの直下フォルダ＋ルートファイル
-  el.innerHTML='';
-  const rootFiles=fileTree['root']||[];
-  let html=`<div style="margin-bottom:16px;">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">📁 ルート（${rootFiles.length}件）</div>`;
-  if(rootFiles.length){
-    html+=`<table class="doc-table"><thead><tr><th style="width:50px">プレビュー</th><th>ファイル名</th><th style="width:90px">日付</th><th style="width:80px">操作</th></tr></thead><tbody>`;
-    html+=rootFiles.map(f=>`<tr>
-      <td><div class="doc-thumb-cell">${f.thumbData?`<img src="${f.thumbData}">`:'📄'}</div></td>
-      <td style="font-size:13px;font-weight:600;">${f.name}</td>
-      <td style="font-size:12px;color:var(--text2);">${f.date}</td>
-      <td><button class="action-btn action-del" onclick="deleteFile('root','${f.id}')">削除</button></td>
-    </tr>`).join('');
-    html+=`</tbody></table>`;
-  }
-  html+='</div>';
-
-  folders.filter(k=>k!=='root').forEach(folder=>{
-    const files=fileTree[folder]||[];
-    html+=`<div style="margin-bottom:16px;padding-left:${folder.includes('/')?'20px':'0'}">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">📁 ${folder}（${files.length}件）
-        <button class="action-btn action-del" onclick="deleteFolder('${folder}')" style="margin-left:8px;font-size:10px;">フォルダ削除</button>
-      </div>`;
-    if(files.length){
-      html+=`<table class="doc-table"><thead><tr><th style="width:50px">プレビュー</th><th>ファイル名</th><th style="width:90px">日付</th><th style="width:80px">操作</th></tr></thead><tbody>`;
-      html+=files.map(f=>`<tr>
-        <td><div class="doc-thumb-cell">${f.thumbData?`<img src="${f.thumbData}">`:'📄'}</div></td>
-        <td style="font-size:13px;font-weight:600;">${f.name}</td>
-        <td style="font-size:12px;color:var(--text2);">${f.date}</td>
-        <td><button class="action-btn action-del" onclick="deleteFile('${folder}','${f.id}')">削除</button></td>
-      </tr>`).join('');
-      html+=`</tbody></table>`;
-    } else {
-      html+='<div style="font-size:12px;color:var(--text3);padding:8px 0;">ファイルなし</div>';
-    }
-    html+='</div>';
-  });
-  el.innerHTML=html;
-}
-
-function deleteFile(folder,id){
-  if(!confirm('削除しますか？')) return;
-  loadFileTree();
-  if(fileTree[folder]) fileTree[folder]=fileTree[folder].filter(f=>f.id!==id);
-  saveFileTree();renderAdminFileTree();showToast('削除しました');
-}
-
-function deleteFolder(folder){
-  if(!confirm(`フォルダ「${folder}」とその中のファイルをすべて削除しますか？`)) return;
-  loadFileTree();
-  // サブフォルダも含めて削除
-  Object.keys(fileTree).filter(k=>k===folder||k.startsWith(folder+'/')).forEach(k=>delete fileTree[k]);
-  saveFileTree();updateFolderSelects();renderAdminFileTree();showToast('フォルダを削除しました');
-}
-
-// showAdmin拡張
-const _origShowAdmin=showAdmin;
-function showAdmin(id,btn){
-  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
-  const el=document.getElementById('ap-'+id);
-  if(el) el.classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(id==='manage') renderManage();
-  if(id==='blog-manage') renderBlogManage();
-  if(id==='sec-manage') renderSecManage();
-  if(id==='files-manage'){updateFolderSelects();renderAdminFileTree();}
-}
-
-// 初期化
-loadBlogPosts();
-loadSecDocs();
-loadFileTree();
-document.getElementById('blog-date').value=new Date().toISOString().slice(0,10);
-document.getElementById('sec-date').value=new Date().toISOString().slice(0,10);
+// ===== TOAST =====
+function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;
   t.classList.add('show');
