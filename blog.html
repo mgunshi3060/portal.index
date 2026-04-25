@@ -305,6 +305,11 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 <script>
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
+const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
+const GH_OWNER='mgunshi3060';
+const GH_REPO='portal.index';
+const GH_BRANCH='main';
+const GH_TOKEN_KEY='portal_gh_token';
 
 const CAT={
   tech:{label:'💡 技術・IT',cls:'cat-tech'},
@@ -319,6 +324,36 @@ let currentFilter='all';
 let currentSearch='';
 let pendingTags=[];
 let pendingImgData=null;
+
+// ===== GitHub API (ブログ投稿用) =====
+function ghToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
+async function ghFetch(path,method='GET',body=null){
+  const token=ghToken();
+  if(!token) throw new Error('GitHub Tokenが設定されていません。管理者ページの「GitHub設定」で入力してください。');
+  const res=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,{
+    method,headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+    body:body?JSON.stringify(body):null
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(`GitHub APIエラー(${res.status}): ${e.message||res.statusText}`); }
+  return res.json();
+}
+async function ghGetSha(path){ try{ return (await ghFetch(path)).sha; }catch(e){ return null; } }
+async function ghSaveJson(path,data,message){
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
+  const sha=await ghGetSha(path);
+  const body={message,content,branch:GH_BRANCH};
+  if(sha) body.sha=sha;
+  return ghFetch(path,'PUT',body);
+}
+
+// ===== DATA LOAD (GitHub raw) =====
+async function loadBlogs(){
+  try{
+    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
+    if(res.ok){ blogs=await res.json(); localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }catch(e){ blogs=[]; }
+}
 
 // ===== NAME =====
 function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
@@ -341,13 +376,6 @@ document.getElementById('nav-avatar').addEventListener('click',()=>{
   document.getElementById('name-prompt').classList.add('open');
   setTimeout(()=>document.getElementById('name-input').focus(),100);
 });
-
-// ===== DATA =====
-function loadBlogs(){
-  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }
-  catch(e){ blogs=[]; }
-}
-function saveBlogs(){ localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); }
 
 // ===== RENDER =====
 function getFiltered(){
@@ -515,7 +543,7 @@ function resetImgPreview(){
 }
 
 // SUBMIT
-function submitPost(){
+async function submitPost(){
   const title=document.getElementById('f-title').value.trim();
   const author=document.getElementById('f-author').value.trim();
   const content=document.getElementById('f-content').value.trim();
@@ -528,16 +556,18 @@ function submitPost(){
     return;
   }
   errEl.style.display='none';
-
-  // 名前を保存
   localStorage.setItem(NAME_KEY,author);
   updateAvatar();
 
   const btn=document.getElementById('submit-btn');
   btn.disabled=true;
-  btn.innerHTML='<div class="ring"></div><span>投稿中...</span>';
+  btn.innerHTML='<div class="ring"></div><span>GitHubへ投稿中...</span>';
 
-  setTimeout(()=>{
+  try{
+    // 最新データをGitHubから取得してから追記
+    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
+    if(res.ok) blogs=await res.json();
+
     const post={
       id:'blog_'+Date.now(),
       title,author,content,category,
@@ -546,14 +576,26 @@ function submitPost(){
       date:new Date().toISOString()
     };
     blogs.unshift(post);
-    saveBlogs();
+    await ghSaveJson('data/blogs.json', blogs, 'New blog post: '+title);
+    localStorage.setItem(BLOG_KEY,JSON.stringify(blogs));
     renderList();
     renderSidebar();
     closePostModal();
-    btn.disabled=false;
-    btn.innerHTML='<span>投稿する</span>';
     showToast('投稿しました ✓');
-  },400);
+  }catch(e){
+    errEl.textContent='投稿エラー: '+e.message;
+    errEl.style.display='block';
+    // Tokenがない場合はローカルにのみ保存
+    if(!ghToken()){
+      const post={id:'blog_'+Date.now(),title,author,content,category,tags:pendingTags.slice(),imageData:pendingImgData,date:new Date().toISOString()};
+      blogs.unshift(post);
+      localStorage.setItem(BLOG_KEY,JSON.stringify(blogs));
+      renderList();renderSidebar();closePostModal();
+      showToast('ローカルに保存しました（GitHub未設定）');
+    }
+  }
+  btn.disabled=false;
+  btn.innerHTML='<span>投稿する</span>';
 }
 
 // ===== DETAIL MODAL =====
@@ -593,16 +635,19 @@ function showToast(msg){
 }
 
 // ===== INIT =====
-loadBlogs();
-renderList();
-renderSidebar();
-updateAvatar();
-// 初回は名前入力ポップアップ
-if(!getUsername()){
-  setTimeout(()=>document.getElementById('name-prompt').classList.add('open'),400);
+async function init(){
+  await loadBlogs();
+  renderList();
+  renderSidebar();
+  updateAvatar();
+  if(getUsername()) document.getElementById('f-author').value=getUsername();
+  if(!getUsername()){
+    setTimeout(()=>document.getElementById('name-prompt').classList.add('open'),400);
+  }
 }
+init();
 
-window.addEventListener('storage',e=>{ if(e.key===BLOG_KEY){ loadBlogs(); renderList(); renderSidebar(); } });
+window.addEventListener('storage',e=>{ if(e.key===BLOG_KEY){ loadBlogs().then(()=>{renderList();renderSidebar();}); } });
 </script>
 </body>
 </html>

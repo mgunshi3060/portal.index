@@ -288,20 +288,23 @@ document.getElementById('nav-avatar').addEventListener('click',()=>{
   setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
 });
 
-function loadDocs(){
+// ========== GITHUB RAW FETCH ==========
+const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
+
+async function loadDocs(){
   try{
-    const raw=localStorage.getItem(STORE_KEY);
-    if(raw) docs=JSON.parse(raw);
-  }catch(e){docs=[];}
-}
-function loadBlogs(){
-  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }
-  catch(e){ blogs=[]; }
+    const res=await fetch(GH_RAW+'data/docs.json?_='+Date.now());
+    if(res.ok){ docs=await res.json(); localStorage.setItem(STORE_KEY,JSON.stringify(docs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(STORE_KEY); if(r) docs=JSON.parse(r); }catch(e){ docs=[]; }
 }
 
-function saveDocs(){
-  const save=docs.map(d=>({id:d.id,name:d.name,tag:d.tag,date:d.date,url:d.url,numPages:d.numPages,urgent:d.urgent,thumbData:d.thumbData}));
-  localStorage.setItem(STORE_KEY,JSON.stringify(save));
+async function loadBlogs(){
+  try{
+    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
+    if(res.ok){ blogs=await res.json(); localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }catch(e){ blogs=[]; }
 }
 
 function showPage(id,btn){
@@ -423,9 +426,10 @@ async function openPdfModal(id){
   const mp=document.getElementById('pdf-modal-pages');
   mp.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text2);">読み込み中...</div>';
   document.getElementById('pdf-modal').classList.add('open');
-
+  // pdfB64(Base64)があればそちらを使う、なければurl
+  const src=d.pdfB64||d.url;
   try{
-    const pdfDoc=await pdfjsLib.getDocument(d.url).promise;
+    const pdfDoc=await pdfjsLib.getDocument(src).promise;
     mp.innerHTML='';
     for(let i=1;i<=pdfDoc.numPages;i++){
       const wrap=document.createElement('div'); wrap.className='page-th';
@@ -485,9 +489,9 @@ function renderHomeBlog(){
   }).join('');
 }
 
-function refreshAll(){
-  loadDocs();
-  loadBlogs();
+async function refreshAll(){
+  await loadDocs();
+  await loadBlogs();
   updateGreeting();
   updateAvatar();
   renderHomeNews();
