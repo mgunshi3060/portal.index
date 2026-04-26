@@ -171,6 +171,33 @@ async function apiUploadPdf(filename, base64DataUrl) {
 //  内部ユーティリティ（触らなくてOK）
 // =====================================================
 
+// GitHub: Token の接続テスト（admin.html の saveToken() / initAdmin() から呼ばれる）
+async function ghCheckToken() {
+  const token = _ghToken();
+  if (!token) return { ok: false, msg: 'Token未設定' };
+  try {
+    const res = await fetch(
+      'https://api.github.com/repos/' + GITHUB.owner + '/' + GITHUB.repo,
+      {
+        headers: {
+          'Authorization': 'token ' + token,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      }
+    );
+    if (res.ok) {
+      const d = await res.json();
+      return { ok: true, msg: '接続OK ✅ (' + d.full_name + ')' };
+    }
+    if (res.status === 401) return { ok: false, msg: 'Token無効 (401 Unauthorized)' };
+    if (res.status === 403) return { ok: false, msg: 'アクセス拒否 (403 Forbidden)' };
+    if (res.status === 404) return { ok: false, msg: 'リポジトリが見つかりません (404)' };
+    return { ok: false, msg: 'エラー (HTTP ' + res.status + ')' };
+  } catch (e) {
+    return { ok: false, msg: 'ネットワークエラー: ' + e.message };
+  }
+}
+
 // GitHub: ファイルのSHAを取得（更新時に必要）
 async function _ghGetSha(path) {
   try {
