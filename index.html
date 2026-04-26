@@ -18,57 +18,47 @@
 body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:var(--text);background:var(--bg);}
 a{color:inherit;text-decoration:none;}
 
-/* ===== NAV ===== */
-.nav{height:50px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:4px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+/* NAV */
+.nav{height:50px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
 .nav-logo{width:30px;height:30px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .nav-logo svg{width:16px;height:16px;fill:white;}
-.nav-name{font-size:13px;font-weight:600;color:var(--green-dd);margin-right:4px;white-space:nowrap;}
-.nav-tabs{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{padding:6px 11px;border-radius:var(--radius);font-size:12px;cursor:pointer;color:var(--text2);border:none;background:none;white-space:nowrap;transition:all .15s;flex-shrink:0;}
+.nav-name{font-size:13px;font-weight:600;color:var(--green-dd);margin-right:6px;white-space:nowrap;}
+.nav-tab{padding:6px 13px;border-radius:var(--radius);font-size:12px;cursor:pointer;color:var(--text2);border:none;background:none;white-space:nowrap;transition:all .15s;}
 .nav-tab:hover{background:#f0f0f0;color:var(--text);}
 .nav-tab.active{background:var(--green-l);color:var(--green-dd);font-weight:600;}
-.nav-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--green);color:white;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;}
-.admin-link{font-size:11px;color:var(--text3);padding:4px 8px;border:0.5px solid var(--border);border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.admin-link{font-size:11px;color:var(--text3);padding:4px 10px;border:0.5px solid var(--border);border-radius:20px;cursor:pointer;transition:all .15s;}
 .admin-link:hover{color:var(--green);border-color:var(--green);}
 
-/* ===== PAGE ===== */
-.page{display:none;padding:12px;max-width:1000px;margin:0 auto;}
+/* PAGE */
+.page{display:none;padding:16px;max-width:1000px;margin:0 auto;}
 .page.active{display:block;}
 .section-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;}
 
-/* ===== HERO ===== */
-.hero{background:linear-gradient(135deg,var(--green) 0%,var(--green-d) 100%);border-radius:var(--radius-lg);padding:16px 18px;color:white;margin-bottom:12px;}
-.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.hero h1{font-size:17px;font-weight:600;margin-bottom:2px;}
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--green) 0%,var(--green-d) 100%);border-radius:var(--radius-lg);padding:20px 22px;color:white;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.hero h1{font-size:18px;font-weight:600;margin-bottom:3px;}
 .hero p{font-size:12px;opacity:.85;}
-.hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
-.hero-date{font-size:11px;opacity:.85;background:rgba(255,255,255,.18);border-radius:6px;padding:4px 10px;white-space:nowrap;}
-/* Weather widget inside hero */
-.weather-chip{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:11px;white-space:nowrap;}
-.weather-icon{font-size:18px;line-height:1;}
-.weather-info{display:flex;flex-direction:column;line-height:1.3;}
-.weather-temp{font-size:13px;font-weight:700;}
-.weather-desc{font-size:10px;opacity:.85;}
+.hero-date{font-size:11px;opacity:.75;background:rgba(255,255,255,.15);border-radius:6px;padding:4px 12px;white-space:nowrap;}
 
-/* ===== ALERT ===== */
+/* ALERT */
 .alert{background:var(--red-l);border:0.5px solid #f7c1c1;border-radius:var(--radius);padding:10px 14px;display:flex;gap:8px;align-items:center;margin-bottom:12px;}
 .alert-dot{width:7px;height:7px;background:var(--red);border-radius:50%;flex-shrink:0;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .alert-text{font-size:12px;color:#a32d2d;font-weight:600;}
 
-/* ===== STATS ===== */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.stat{background:#eceae4;border-radius:var(--radius);padding:10px 12px;}
-.stat-label{font-size:10px;color:var(--text2);margin-bottom:2px;}
-.stat-val{font-size:20px;font-weight:600;}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.stat{background:#eceae4;border-radius:var(--radius);padding:12px 14px;}
+.stat-label{font-size:10px;color:var(--text2);margin-bottom:3px;}
+.stat-val{font-size:22px;font-weight:600;}
 
-/* ===== TWO COL ===== */
-.two-col{display:grid;grid-template-columns:1fr 300px;gap:12px;}
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 310px;gap:14px;}
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;}
 
-/* ===== NEWS LIST ===== */
+/* NEWS LIST */
 .news-item{display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--border);align-items:flex-start;cursor:pointer;transition:opacity .15s;}
 .news-item:hover{opacity:.75;}
 .news-item:last-child{border-bottom:none;}
@@ -77,135 +67,63 @@ a{color:inherit;text-decoration:none;}
 .bn{background:var(--amber-l);color:#854f0b;}
 .br{background:var(--green-l);color:var(--green-dd);}
 .bb{background:var(--blue-l);color:#185fa5;}
-.news-main{flex:1;min-width:0;}
 .news-title{font-size:12px;font-weight:600;line-height:1.4;}
 .news-date{font-size:10px;color:var(--text3);margin-top:2px;}
-/* Mini thumb for news preview */
-.news-thumb{width:40px;height:52px;background:#eceae4;border-radius:4px;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.news-thumb img,.news-thumb canvas{width:100%;height:100%;object-fit:cover;}
-.news-thumb .pdf-icon{font-size:16px;opacity:.4;}
 
-/* ===== QUICK LINKS ===== */
-.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+/* QUICK LINKS */
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
 .ql-item{background:#f5f4f1;border-radius:var(--radius);padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid transparent;transition:all .15s;}
 .ql-item:hover{background:var(--surface);border-color:var(--border);}
 .ql-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
 .ql-label{font-size:12px;font-weight:600;}
 .ql-sub{font-size:10px;color:var(--text2);}
 
-/* ===== PDF GRID (home) ===== */
+/* PDF GRID (home) */
 .pdf-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .pdf-more{font-size:11px;color:var(--green);cursor:pointer;}
-.pdf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.pdf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
 .pdf-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .1s;}
 .pdf-card:hover{border-color:var(--green);transform:translateY(-1px);}
 .pdf-thumb{aspect-ratio:3/4;background:#eceae4;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 .pdf-thumb canvas{width:100%;height:100%;object-fit:cover;}
 .pdf-tag-badge{position:absolute;top:4px;left:4px;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;}
 .pdf-new-badge{position:absolute;top:4px;right:4px;background:var(--red);color:white;font-size:8px;padding:1px 4px;border-radius:3px;font-weight:600;}
-.pdf-info{padding:5px 6px 6px;}
+.pdf-info{padding:5px 7px 7px;}
 .pdf-name{font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .pdf-date{font-size:9px;color:var(--text3);margin-top:2px;}
 .pdf-empty{aspect-ratio:3/4;background:#f5f4f1;border:1px dashed var(--border);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .pdf-empty-icon{font-size:18px;opacity:.3;}
 .pdf-empty-text{font-size:9px;color:var(--text3);}
+.ring{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-/* ===== EVENTS PANEL ===== */
-.events-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:12px;}
-.events-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.events-hd-title{font-size:12px;font-weight:700;color:var(--text);}
-.event-add-btn{font-size:11px;color:var(--green);border:0.5px solid var(--green);border-radius:6px;padding:3px 9px;cursor:pointer;background:none;transition:all .15s;}
-.event-add-btn:hover{background:var(--green-l);}
-.event-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);}
-.event-item:last-child{border-bottom:none;}
-.event-date-badge{min-width:36px;text-align:center;background:var(--green-l);border-radius:6px;padding:3px 5px;flex-shrink:0;}
-.event-date-m{font-size:9px;color:var(--green-d);font-weight:600;line-height:1.2;}
-.event-date-d{font-size:16px;font-weight:700;color:var(--green-dd);line-height:1;}
-.event-body{flex:1;min-width:0;}
-.event-name{font-size:12px;font-weight:600;line-height:1.3;}
-.event-time{font-size:10px;color:var(--text2);margin-top:1px;}
-.event-today{background:#fff8e6;border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding-left:6px;}
-.event-del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;transition:color .15s;flex-shrink:0;}
-.event-del-btn:hover{color:var(--red);}
-.events-empty{font-size:12px;color:var(--text3);text-align:center;padding:14px 0;}
-/* Event add form */
-.event-form{background:#f8f8f6;border-radius:var(--radius);padding:10px;margin-top:8px;display:none;}
-.event-form.open{display:block;}
-.event-form input,.event-form select{width:100%;height:32px;border:0.5px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;margin-bottom:6px;outline:none;font-family:inherit;}
-.event-form input:focus,.event-form select:focus{border-color:var(--green);}
-.event-form-row{display:flex;gap:6px;}
-.event-form-row input{margin-bottom:0;}
-.event-submit-btn{height:32px;background:var(--green);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;padding:0 14px;margin-top:6px;}
-.event-cancel-btn{height:32px;background:none;border:0.5px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;padding:0 12px;margin-top:6px;margin-left:6px;}
-
-/* ===== NOTICE PAGE ===== */
+/* NOTICE PAGE */
 .filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
-.filter-btn{padding:5px 12px;border:0.5px solid var(--border);border-radius:20px;font-size:12px;background:var(--surface);cursor:pointer;color:var(--text2);transition:all .15s;}
+.filter-btn{padding:5px 14px;border:0.5px solid var(--border);border-radius:20px;font-size:12px;background:var(--surface);cursor:pointer;color:var(--text2);transition:all .15s;}
 .filter-btn:hover{border-color:var(--green);color:var(--green);}
 .filter-btn.active{background:var(--green);color:white;border-color:var(--green);font-weight:600;}
 .notice-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;cursor:pointer;transition:border-color .15s;}
 .notice-card:hover{border-color:var(--green);}
 .notice-thumb{width:64px;height:80px;background:#eceae4;border-radius:var(--radius);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
-.notice-thumb canvas,.notice-thumb img{width:100%;height:100%;object-fit:cover;}
-.notice-body{flex:1;min-width:0;}
+.notice-thumb canvas{width:100%;height:100%;object-fit:cover;}
+.notice-body{flex:1;}
 .notice-title{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.4;}
 .notice-snippet{font-size:12px;color:var(--text2);line-height:1.5;}
-.notice-footer{font-size:10px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.notice-footer{font-size:10px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:10px;}
 .pdf-icon-badge{display:inline-flex;align-items:center;gap:3px;background:var(--green-l);color:var(--green-dd);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;}
 .notice-dl{font-size:11px;color:var(--green);font-weight:600;border:0.5px solid var(--green);border-radius:6px;padding:4px 10px;margin-left:auto;white-space:nowrap;flex-shrink:0;align-self:flex-start;}
 
-/* ===== MODAL ===== */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:center;justify-content:center;padding:12px;}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:center;justify-content:center;}
 .modal-bg.open{display:flex;}
-.modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(560px,100%);max-height:90vh;overflow:auto;display:flex;flex-direction:column;}
-.modal-hd{padding:14px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(560px,94vw);max-height:88vh;overflow:auto;display:flex;flex-direction:column;}
+.modal-hd{padding:14px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px;}
 .modal-title{font-size:14px;font-weight:600;flex:1;}
 .modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);padding:2px 6px;line-height:1;}
 .modal-pages{padding:14px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
 .page-th{border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;background:#eceae4;position:relative;}
 .page-th canvas{width:100%;height:100%;object-fit:cover;}
 .page-num{position:absolute;bottom:4px;right:5px;font-size:9px;background:rgba(0,0,0,.4);color:white;padding:1px 5px;border-radius:3px;}
-
-/* ===== RING ===== */
-.ring{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* ===== MOBILE RESPONSIVE ===== */
-@media(max-width:700px){
-  .nav-name{display:none;}
-  .nav-tab{padding:5px 8px;font-size:11px;}
-  .admin-link{display:none;}
-
-  .page{padding:8px;}
-
-  .hero{padding:14px;}
-  .hero h1{font-size:15px;}
-  .hero-top{flex-wrap:wrap;}
-  .hero-right{flex-direction:row;align-items:center;width:100%;margin-top:8px;}
-  .hero-date{flex:1;}
-
-  .stats{grid-template-columns:repeat(3,1fr);gap:6px;}
-  .stat{padding:8px 10px;}
-  .stat-val{font-size:18px;}
-  .stat-label{font-size:9px;}
-
-  .two-col{grid-template-columns:1fr;}
-
-  .pdf-grid{grid-template-columns:repeat(3,1fr);}
-
-  .notice-card{flex-direction:column;gap:8px;}
-  .notice-thumb{width:100%;height:140px;}
-  .notice-dl{align-self:auto;}
-
-  .modal-pages{grid-template-columns:1fr 1fr;}
-
-  .ql-grid{grid-template-columns:1fr 1fr;}
-}
-@media(max-width:400px){
-  .pdf-grid{grid-template-columns:repeat(2,1fr);}
-  .stats{gap:4px;}
-  .nav-tab{padding:5px 6px;font-size:10px;}
-}
 </style>
 </head>
 <body>
@@ -213,25 +131,27 @@ a{color:inherit;text-decoration:none;}
 <nav class="nav">
   <div class="nav-logo"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></div>
   <span class="nav-name">社内ポータル</span>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('home',this)">ホーム</button>
-    <button class="nav-tab" onclick="showPage('notice',this)">お知らせ</button>
-    <a class="nav-tab" href="blog.html">社内ブログ</a>
-    <button class="nav-tab" onclick="showPage('security',this)">セキュリティ</button>
-    <button class="nav-tab" onclick="showPage('files',this)">ファイル検索</button>
-  </div>
+  <button class="nav-tab active" onclick="showPage('home',this)">ホーム</button>
+  <button class="nav-tab" onclick="showPage('notice',this)">お知らせ</button>
+  <a class="nav-tab" href="blog.html" style="text-decoration:none;">社内ブログ</a>
+  <button class="nav-tab" onclick="showPage('security',this)">セキュリティ</button>
+  <button class="nav-tab" onclick="showPage('files',this)">ファイル検索</button>
   <div class="nav-right">
-    <span class="admin-link" onclick="location.href='admin.html'">⚙ 管理者</span>
+    <span class="admin-link" onclick="location.href='admin.html'">⚙ 管理者ページ</span>
     <div class="nav-avatar" id="nav-avatar" title="名前を変更" style="cursor:pointer;">?</div>
   </div>
 </nav>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
+  <div class="hero">
+    <div><h1 id="greeting-text">おはようございます</h1><p id="notice-sub-text">ようこそ！お名前を設定してください</p></div>
+    <div class="hero-date" id="today-date"></div>
+  </div>
 
   <!-- NAME PROMPT OVERLAY -->
   <div id="name-prompt-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:12px;padding:28px;width:min(300px,90vw);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div style="background:#fff;border-radius:12px;padding:28px;width:300px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
       <div style="font-size:32px;margin-bottom:10px;">👋</div>
       <div style="font-size:15px;font-weight:700;margin-bottom:4px;">はじめまして！</div>
       <div style="font-size:12px;color:#666;margin-bottom:14px;">あなたのお名前を教えてください</div>
@@ -242,84 +162,27 @@ a{color:inherit;text-decoration:none;}
     </div>
   </div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-top">
-      <div>
-        <h1 id="greeting-text">おはようございます</h1>
-        <p id="notice-sub-text">ようこそ！お名前を設定してください</p>
-      </div>
-      <div class="hero-right">
-        <div class="hero-date" id="today-date"></div>
-        <!-- Weather chip injected here -->
-        <div class="weather-chip" id="weather-chip" style="display:none;">
-          <div class="weather-icon" id="w-icon">☀️</div>
-          <div class="weather-info">
-            <div class="weather-temp" id="w-temp">--°C</div>
-            <div class="weather-desc" id="w-desc">取得中...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="alert" id="alert-bar" style="display:none">
     <div class="alert-dot"></div>
     <div class="alert-text" id="alert-text"></div>
   </div>
-
-  <!-- STATS -->
   <div class="stats">
     <div class="stat"><div class="stat-label">今月の新着お知らせ</div><div class="stat-val" id="stat-notice">—</div></div>
     <div class="stat"><div class="stat-label">社内ブログ投稿数</div><div class="stat-val" id="stat-blog">—</div></div>
-    <div class="stat"><div class="stat-label">共有PDF数</div><div class="stat-val" id="stat-pdf">—</div></div>
+    <div class="stat"><div class="stat-label">共有ファイル数</div><div class="stat-val">247</div></div>
   </div>
-
   <div class="two-col">
     <div>
-      <!-- RECENT NOTICES -->
       <div class="section-label">最新のお知らせ</div>
       <div class="card" id="home-news-list"><div style="color:var(--text3);font-size:13px;text-align:center;padding:24px 0;">お知らせを読み込み中...</div></div>
 
-      <!-- RECENT BLOG -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0;">最新のブログ</div>
-        <a href="blog.html" style="font-size:11px;color:var(--green);">すべて見る →</a>
+        <a href="blog.html" style="font-size:11px;color:var(--green);text-decoration:none;">すべて見る →</a>
       </div>
       <div id="home-blog-list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
     </div>
-
     <div>
-      <!-- EVENTS PANEL -->
-      <div class="section-label">直近のイベント</div>
-      <div class="events-card">
-        <div class="events-hd">
-          <div class="events-hd-title">📅 社内イベント・予定</div>
-          <button class="event-add-btn" onclick="toggleEventForm()">＋ 追加</button>
-        </div>
-        <!-- Add Event Form -->
-        <div class="event-form" id="event-form">
-          <input type="text" id="evt-name" placeholder="イベント名（例：朝会）" maxlength="40">
-          <div class="event-form-row">
-            <input type="date" id="evt-date" style="flex:1;">
-            <input type="text" id="evt-time" placeholder="時間（任意）" style="flex:1;" maxlength="10">
-          </div>
-          <div>
-            <button class="event-submit-btn" onclick="addEvent()">追加</button>
-            <button class="event-cancel-btn" onclick="toggleEventForm()">キャンセル</button>
-          </div>
-        </div>
-        <div id="events-list"><div class="events-empty">予定はありません</div></div>
-        <!-- Google Calendar link -->
-        <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);">
-          <a href="https://calendar.google.com" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text2)'">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-            Googleカレンダーを開く →
-          </a>
-        </div>
-      </div>
-
-      <!-- QUICK LINKS -->
       <div class="section-label">クイックリンク</div>
       <div class="ql-grid">
         <div class="ql-item" onclick="showPage('notice',document.querySelectorAll('.nav-tab')[1])"><div class="ql-icon" style="background:var(--green-l)">📋</div><div><div class="ql-label">お知らせ</div><div class="ql-sub">PDF・連絡事項</div></div></div>
@@ -327,8 +190,6 @@ a{color:inherit;text-decoration:none;}
         <div class="ql-item" onclick="showPage('security',document.querySelectorAll('.nav-tab')[3])"><div class="ql-icon" style="background:var(--red-l)">🔒</div><div><div class="ql-label">セキュリティ</div><div class="ql-sub">情報・対策</div></div></div>
         <div class="ql-item" onclick="showPage('files',document.querySelectorAll('.nav-tab')[4])"><div class="ql-icon" style="background:var(--amber-l)">🗂️</div><div><div class="ql-label">ファイル検索</div><div class="ql-sub">社内共有フォルダ</div></div></div>
       </div>
-
-      <!-- RECENT PDFs -->
       <div class="pdf-section-hd">
         <div class="section-label" style="margin-bottom:0">最近のPDFお知らせ</div>
         <span class="pdf-more" onclick="showPage('notice',document.querySelectorAll('.nav-tab')[1])">すべて見る →</span>
@@ -347,7 +208,7 @@ a{color:inherit;text-decoration:none;}
 <div class="page" id="page-notice">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
     <div style="font-size:17px;font-weight:600;">お知らせ</div>
-    <span style="font-size:11px;color:var(--text3)">日付の新しい順</span>
+    <span style="font-size:11px;color:var(--text3)">日付の新しい順に表示</span>
   </div>
   <div class="filter-row">
     <button class="filter-btn active" onclick="filterNotice('all',this)">すべて</button>
@@ -393,14 +254,14 @@ const TAG={
   other:{label:'その他',bg:'#E6F1FB',color:'#185FA5',cls:'bb'}
 };
 
+// ストレージキー
 const STORE_KEY='portal_docs';
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
-const EVENTS_KEY='portal_events';
 let docs=[];
 let blogs=[];
 
-// ========== USERNAME ==========
+// ===== USERNAME =====
 function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
 function saveUsername(){
   const v=document.getElementById('name-prompt-input').value.trim();
@@ -419,51 +280,13 @@ function updateGreeting(){
 function updateAvatar(){
   const name=getUsername();
   const av=document.getElementById('nav-avatar');
-  if(av) av.textContent=name?name.slice(0,2):'?';
+  if(av){ av.textContent=name?name.slice(0,2):'?'; }
 }
 document.getElementById('nav-avatar').addEventListener('click',()=>{
   document.getElementById('name-prompt-input').value=getUsername();
   document.getElementById('name-prompt-bg').style.display='flex';
   setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
 });
-
-// ========== DATE ==========
-const now=new Date();
-document.getElementById('today-date').textContent=now.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-
-// ========== WEATHER (Open-Meteo, no API key) ==========
-// WMO weather code → emoji + label
-const WMO={
-  0:'☀️|快晴',1:'🌤|晴れ',2:'⛅|くもり',3:'☁️|曇',
-  45:'🌫|霧',48:'🌫|霧',
-  51:'🌦|小雨',53:'🌦|霧雨',55:'🌦|霧雨',
-  61:'🌧|小雨',63:'🌧|雨',65:'🌧|強雨',
-  71:'🌨|小雪',73:'🌨|雪',75:'❄️|大雪',77:'❄️|霙',
-  80:'🌦|にわか雨',81:'🌧|驟雨',82:'⛈|強雨',
-  85:'🌨|にわか雪',86:'❄️|強雪',
-  95:'⛈|雷雨',96:'⛈|雷雨',99:'⛈|激しい雷雨'
-};
-async function fetchWeather(){
-  try{
-    // Use Ushiku, Ibaraki area coords (36.12, 140.15)
-    const lat=36.12,lon=140.15;
-    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=Asia%2FTokyo`;
-    const res=await fetch(url);
-    if(!res.ok) return;
-    const data=await res.json();
-    const temp=Math.round(data.current.temperature_2m);
-    const code=data.current.weather_code;
-    const wmo=WMO[code]||'🌡|不明';
-    const [icon,desc]=wmo.split('|');
-    document.getElementById('w-icon').textContent=icon;
-    document.getElementById('w-temp').textContent=temp+'°C';
-    document.getElementById('w-desc').textContent=desc;
-    document.getElementById('weather-chip').style.display='flex';
-  }catch(e){
-    // Silently fail — network might not be available
-    console.warn('Weather fetch failed',e);
-  }
-}
 
 // ========== GITHUB RAW FETCH ==========
 const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
@@ -491,43 +314,29 @@ function showPage(id,btn){
   if(btn) btn.classList.add('active');
 }
 
-// ========== HOME: NOTICES with mini preview ==========
-// thumbCache: id→canvas dataURL rendered async
-const thumbRendered={};
+// 日付
+document.getElementById('today-date').textContent=new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
 
+// ホーム：お知らせリスト
 function renderHomeNews(){
   const el=document.getElementById('home-news-list');
   const sorted=[...docs].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  if(!sorted.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px 0;">お知らせがありません</div>';
-    return;
-  }
+  if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px 0;">お知らせがありません</div>';return;}
+  el.innerHTML=sorted.map(d=>{
+    const t=TAG[d.tag];
+    const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+    return `<div class="news-item" onclick="openPdfModal('${d.id}')">
+      <span class="nbadge ${t.cls}">${t.label}</span>
+      <div><div class="news-title">${d.name.replace(/\.pdf$/i,'')}</div><div class="news-date">${dateStr}</div></div>
+    </div>`;
+  }).join('');
+
   // stat
   const thisMonth=new Date(); thisMonth.setDate(1); thisMonth.setHours(0,0,0,0);
   document.getElementById('stat-notice').textContent=docs.filter(d=>new Date(d.date)>=thisMonth).length;
-  document.getElementById('stat-pdf').textContent=docs.length;
-
-  el.innerHTML=sorted.map(d=>{
-    const t=TAG[d.tag]||TAG.other;
-    const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
-    const thumbHtml=d.thumbData
-      ? `<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`
-      : `<div class="pdf-icon">📄</div>`;
-    return `<div class="news-item" onclick="openPdfModal('${d.id}')">
-      <div class="news-thumb">${thumbHtml}</div>
-      <div class="news-main">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
-          <span class="nbadge ${t.cls}">${t.label}</span>
-          ${d.urgent?'<span class="nbadge bs">⚠ 重要</span>':''}
-        </div>
-        <div class="news-title">${d.name.replace(/\.pdf$/i,'')}</div>
-        <div class="news-date">${dateStr}</div>
-      </div>
-    </div>`;
-  }).join('');
 }
 
-// ========== HOME: PDF grid ==========
+// ホーム：PDF4枚
 function renderHomePdf(){
   const grid=document.getElementById('home-pdf-grid');
   const sorted=[...docs].sort((a,b)=>new Date(b.date)-new Date(a.date));
@@ -535,7 +344,7 @@ function renderHomePdf(){
   for(let i=0;i<4;i++){
     if(i<sorted.length){
       const d=sorted[i];
-      const t=TAG[d.tag]||TAG.other;
+      const t=TAG[d.tag];
       const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
       const isNew=(Date.now()-new Date(d.date).getTime())<86400000*3;
       const card=document.createElement('div');
@@ -557,27 +366,23 @@ function renderHomePdf(){
   }
 }
 
-// ========== NOTICE PAGE ==========
+// お知らせページ
 let currentFilter='all';
 function renderNotice(){
   const list=document.getElementById('notice-list');
   const sorted=[...docs].sort((a,b)=>new Date(b.date)-new Date(a.date));
   const filtered=currentFilter==='all'?sorted:sorted.filter(d=>d.tag===currentFilter);
-  if(!filtered.length){
-    list.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">該当するお知らせがありません</div>';
-    return;
-  }
+  if(!filtered.length){list.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">該当するお知らせがありません</div>';return;}
   list.innerHTML=filtered.map(d=>{
-    const t=TAG[d.tag]||TAG.other;
+    const t=TAG[d.tag];
     const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
     const isNew=(Date.now()-new Date(d.date).getTime())<86400000*3;
-    const thumbHtml=d.thumbData
-      ? `<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`
-      : `<div class="ring"></div>`;
     return `<div class="notice-card" data-tag="${d.tag}" onclick="openPdfModal('${d.id}')">
-      <div class="notice-thumb" id="nt_${d.id}">${thumbHtml}</div>
+      <div class="notice-thumb" id="nt_${d.id}">
+        ${d.thumbData?`<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`:'<div class="ring"></div>'}
+      </div>
       <div class="notice-body">
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
           <span class="nbadge ${t.cls}">${t.label}</span>
           <span class="pdf-icon-badge">📄 PDF</span>
           ${isNew?'<span class="nbadge bs">NEW</span>':''}
@@ -589,7 +394,7 @@ function renderNotice(){
           <span>${d.numPages||'?'}ページ</span>
         </div>
       </div>
-      <a class="notice-dl" href="${d.pdfB64||d.url||'#'}" download="${d.name}" onclick="event.stopPropagation()">⬇ DL</a>
+      <a class="notice-dl" href="${d.url}" download="${d.name}" onclick="event.stopPropagation()">⬇ DL</a>
     </div>`;
   }).join('');
 }
@@ -601,7 +406,7 @@ function filterNotice(tag,btn){
   renderNotice();
 }
 
-// ========== ALERT BAR ==========
+// アラートバー（urgentドキュメントがあれば表示）
 function updateAlert(){
   const urgents=docs.filter(d=>d.urgent).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const bar=document.getElementById('alert-bar');
@@ -613,7 +418,7 @@ function updateAlert(){
   }
 }
 
-// ========== PDF MODAL ==========
+// PDF全ページモーダル
 async function openPdfModal(id){
   const d=docs.find(x=>x.id===id);
   if(!d) return;
@@ -621,8 +426,9 @@ async function openPdfModal(id){
   const mp=document.getElementById('pdf-modal-pages');
   mp.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text2);">読み込み中...</div>';
   document.getElementById('pdf-modal').classList.add('open');
+  // pdfB64(旧方式)があればそちら、なければGitHub raw URL
   const src=d.pdfB64||d.url;
-  if(!src){ mp.innerHTML='<div style="grid-column:1/-1;color:#888;padding:20px;text-align:center;">プレビューデータがありません<br><small>管理者ページから再アップロードしてください</small></div>'; return; }
+  if(!src){ mp.innerHTML='<div style="grid-column:1/-1;color:var(--text3);padding:20px;text-align:center;">PDFのURLが見つかりません</div>'; return; }
   try{
     const pdfDoc=await pdfjsLib.getDocument(src).promise;
     mp.innerHTML='';
@@ -644,7 +450,8 @@ async function openPdfModal(id){
 }
 function closePdfModal(){ document.getElementById('pdf-modal').classList.remove('open'); }
 
-// ========== BLOG (home) ==========
+// 外部からデータを受け取る（admin.htmlと共有ストレージ経由）
+// ホーム：ブログ最新4件
 const CAT_BLOG={
   tech:{label:'💡 技術・IT',bg:'#E6F1FB',color:'#185fa5'},
   report:{label:'🏭 現場レポート',bg:'#E1F5EE',color:'#085041'},
@@ -683,78 +490,6 @@ function renderHomeBlog(){
   }).join('');
 }
 
-// ========== EVENTS ==========
-function getEvents(){
-  try{ return JSON.parse(localStorage.getItem(EVENTS_KEY))||[]; }catch(e){ return []; }
-}
-function saveEvents(ev){ localStorage.setItem(EVENTS_KEY,JSON.stringify(ev)); }
-
-function renderEvents(){
-  const events=getEvents();
-  const today=new Date(); today.setHours(0,0,0,0);
-  // Sort by date, only future + today
-  const upcoming=events
-    .filter(e=>new Date(e.date)>=today)
-    .sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const el=document.getElementById('events-list');
-  if(!upcoming.length){
-    el.innerHTML='<div class="events-empty">直近の予定はありません</div>';
-    return;
-  }
-  el.innerHTML=upcoming.map(e=>{
-    const d=new Date(e.date);
-    const isToday=d.getTime()===today.getTime();
-    const mm=(d.getMonth()+1)+'月';
-    const dd=d.getDate()+'日';
-    const weekday=['日','月','火','水','木','金','土'][d.getDay()];
-    return `<div class="event-item${isToday?' event-today':''}">
-      <div class="event-date-badge">
-        <div class="event-date-m">${mm}</div>
-        <div class="event-date-d">${dd}</div>
-        <div style="font-size:9px;color:var(--green-d);font-weight:600;">${weekday}</div>
-      </div>
-      <div class="event-body">
-        <div class="event-name">${escHtml(e.name)}${isToday?' <span style="font-size:9px;background:var(--amber);color:white;border-radius:3px;padding:1px 5px;font-weight:700;">本日</span>':''}</div>
-        ${e.time?`<div class="event-time">🕐 ${escHtml(e.time)}</div>`:''}
-      </div>
-      <button class="event-del-btn" onclick="deleteEvent('${e.id}')" title="削除">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function toggleEventForm(){
-  const f=document.getElementById('event-form');
-  f.classList.toggle('open');
-  if(f.classList.contains('open')){
-    const today=new Date().toISOString().slice(0,10);
-    document.getElementById('evt-date').value=today;
-    document.getElementById('evt-name').focus();
-  }
-}
-
-function addEvent(){
-  const name=document.getElementById('evt-name').value.trim();
-  const date=document.getElementById('evt-date').value;
-  const time=document.getElementById('evt-time').value.trim();
-  if(!name||!date) return;
-  const events=getEvents();
-  events.push({id:'ev_'+Date.now(),name,date,time});
-  saveEvents(events);
-  document.getElementById('evt-name').value='';
-  document.getElementById('evt-time').value='';
-  document.getElementById('event-form').classList.remove('open');
-  renderEvents();
-}
-
-function deleteEvent(id){
-  const events=getEvents().filter(e=>e.id!==id);
-  saveEvents(events);
-  renderEvents();
-}
-
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ========== INIT ==========
 async function refreshAll(){
   await loadDocs();
   await loadBlogs();
@@ -765,14 +500,11 @@ async function refreshAll(){
   renderHomeBlog();
   renderNotice();
   updateAlert();
-  renderEvents();
-  // Update stat-pdf
-  document.getElementById('stat-pdf').textContent=docs.length;
 }
 
 refreshAll();
-fetchWeather();
 
+// 初回は名前入力ポップアップ
 if(!getUsername()){
   setTimeout(()=>{
     document.getElementById('name-prompt-bg').style.display='flex';
@@ -780,25 +512,10 @@ if(!getUsername()){
   },300);
 }
 
+// ストレージ変更をリアルタイム検知
 window.addEventListener('storage',e=>{
   if(e.key===STORE_KEY||e.key===BLOG_KEY||e.key===NAME_KEY) refreshAll();
 });
-
-// Pre-populate sample events if empty (first visit)
-(function initSampleEvents(){
-  const events=getEvents();
-  if(events.length===0){
-    const year=new Date().getFullYear();
-    // Add this year's May events as sample
-    const samples=[
-      {id:'ev_sample1',name:'朝会',date:`${year}-05-01`,time:''},
-      {id:'ev_sample2',name:'出勤日',date:`${year}-05-05`,time:''},
-      {id:'ev_sample3',name:'臨時出社',date:`${year}-05-07`,time:''},
-    ];
-    saveEvents(samples);
-    renderEvents();
-  }
-})();
 </script>
 </body>
 </html>

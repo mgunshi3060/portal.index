@@ -348,7 +348,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             ⚠ Tokenはこのブラウザのみに保存されます（GitHubには送信されません）
           </div>
           <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px;">Personal Access Token</label>
-          <input class="token-input" type="password" id="gh-token-input" placeholder="ghp_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">
+          <input class="token-input" type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
             <button class="upload-btn" onclick="saveToken()">保存して接続テスト</button>
             <button onclick="clearToken()" style="height:38px;padding:0 14px;border:0.5px solid var(--border);border-radius:var(--radius);background:none;font-size:13px;cursor:pointer;">削除</button>
@@ -357,8 +357,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           <div style="background:#f5f4f1;border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2);">
             <b>接続先リポジトリ：</b> mgunshi3060/portal.index (main ブランチ)<br>
             <b>保存先：</b> data/docs.json（お知らせ）、data/blogs.json（ブログ）<br>
-            <b>PDFの保存方法：</b> Base64エンコードしてJSONに埋め込み<br>
+            <b>PDFの保存方法：</b> pdfs/ フォルダに個別保存 → URLをJSONに記録<br>
             <b>XSERVERへの移行：</b> JSONファイルをPHPのAPIに置き換えるだけでOK
+          </div>
+          <div style="margin-top:16px;border-top:0.5px solid var(--border);padding-top:16px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;">🔧 データ修復ツール</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick="repairDocsJson()" style="height:34px;padding:0 14px;border:0.5px solid var(--amber);color:#854f0b;background:var(--amber-l);border-radius:var(--radius);font-size:12px;cursor:pointer;font-weight:600;">docs.json を修復・初期化</button>
+              <button onclick="repairBlogsJson()" style="height:34px;padding:0 14px;border:0.5px solid var(--amber);color:#854f0b;background:var(--amber-l);border-radius:var(--radius);font-size:12px;cursor:pointer;font-weight:600;">blogs.json を修復・初期化</button>
+              <button onclick="checkGhFiles()" style="height:34px;padding:0 14px;border:0.5px solid var(--border);color:var(--text2);background:#f5f4f1;border-radius:var(--radius);font-size:12px;cursor:pointer;">GitHub状態を確認</button>
+            </div>
+            <div id="repair-msg" style="margin-top:10px;font-size:12px;"></div>
           </div>
         </div>
       </div>
@@ -587,7 +596,7 @@ async function handleFiles(files){
     const canvas=document.createElement('canvas');
     canvas.width=vp.width; canvas.height=vp.height;
     await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    const thumbData=canvas.toDataURL('image/jpeg',0.7);
+    const thumbData=canvas.toDataURL('image/jpeg',0.4);  // 圧縮率高め（JSON軽量化）
     // PDF本体もBase64で読み込む
     const pdfB64=await fileToBase64(f);
     pendingFiles.push({name:f.name,pdfB64,numPages:pdf.numPages,thumbData});
@@ -626,6 +635,17 @@ function removePending(i){
   if(!pendingFiles.length) document.getElementById('meta-form').style.display='none';
 }
 
+// PDFファイルをGitHubの pdfs/ フォルダへアップロード
+async function ghUploadPdf(filename, base64DataUrl){
+  // "data:application/pdf;base64,XXXX" → "XXXX" だけ取り出す
+  const b64=base64DataUrl.split(',')[1];
+  const path='pdfs/'+filename;
+  const sha=await ghGetSha(path);
+  const body={message:'Upload PDF: '+filename, content:b64, branch:GH_BRANCH};
+  if(sha) body.sha=sha;
+  return ghFetch(path,'PUT',body);
+}
+
 async function doUpload(){
   if(!pendingFiles.length) return;
   if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); showAdmin('github',null); return; }
@@ -643,12 +663,20 @@ async function doUpload(){
     for(let i=0;i<pendingFiles.length;i++){
       const f=pendingFiles[i];
       document.getElementById('prog_'+i).style.display='block';
-      document.getElementById('progbar_'+i).style.width='40%';
+      document.getElementById('progbar_'+i).style.width='20%';
+
+      // ① PDFファイルを pdfs/ フォルダへ個別アップロード
+      await ghUploadPdf(f.name, f.pdfB64);
+      document.getElementById('progbar_'+i).style.width='70%';
+
+      // ② JSONにはパスとサムネだけ記録（PDF本体は含めない）
+      const pdfUrl='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/pdfs/'+encodeURIComponent(f.name);
       const id='doc_'+Date.now()+'_'+i;
-      docs.unshift({id,name:f.name,tag,date,urgent,numPages:f.numPages,thumbData:f.thumbData,pdfB64:f.pdfB64});
-      document.getElementById('progbar_'+i).style.width='80%';
+      docs.unshift({id, name:f.name, tag, date, urgent, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
+      document.getElementById('progbar_'+i).style.width='90%';
     }
 
+    // ③ docs.jsonを更新（サムネのみ、軽量）
     await ghSaveJson('data/docs.json', docs, `Add ${pendingFiles.length} PDF(s): ${pendingFiles.map(f=>f.name).join(', ')}`);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
 
@@ -657,6 +685,7 @@ async function doUpload(){
     showToast(`${pendingFiles.length}件をGitHubに保存しました ✓`);
   }catch(e){
     showToast('エラー: '+e.message,'error');
+    console.error(e);
   }
 
   pendingFiles=[]; renderPending();
@@ -831,6 +860,58 @@ function showToast(msg,type=''){
   t.textContent=msg;
   t.className='toast show'+(type==='error'?' error':'');
   setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ========== REPAIR TOOLS ==========
+async function repairDocsJson(){
+  const msg=document.getElementById('repair-msg');
+  msg.style.color='#666'; msg.textContent='docs.json を確認中...';
+  try{
+    // GitHubから既存を読もうとする
+    const existing=await ghLoadJson('data/docs.json');
+    if(Array.isArray(existing)){
+      // 壊れていないがpdfB64が含まれていれば除去
+      const cleaned=existing.map(d=>{const {pdfB64,...rest}=d;return rest;});
+      await ghSaveJson('data/docs.json', cleaned, 'Repair: remove pdfB64 from docs.json');
+      msg.style.color='var(--green)'; msg.textContent=`✅ 修復完了（${cleaned.length}件、pdfB64を除去してURL方式に変換）`;
+      docs=cleaned; localStorage.setItem(STORE_KEY,JSON.stringify(docs)); updateSbCount();
+    } else {
+      // nullまたは壊れている→空配列で初期化
+      await ghSaveJson('data/docs.json', [], 'Repair: initialize docs.json');
+      docs=[]; localStorage.setItem(STORE_KEY,'[]');
+      msg.style.color='var(--green)'; msg.textContent='✅ docs.json を空で初期化しました。PDFを再アップロードしてください。';
+      updateSbCount();
+    }
+  }catch(e){ msg.style.color='#a32d2d'; msg.textContent='❌ エラー: '+e.message; }
+}
+
+async function repairBlogsJson(){
+  const msg=document.getElementById('repair-msg');
+  msg.textContent='blogs.json を確認中...';
+  try{
+    const existing=await ghLoadJson('data/blogs.json');
+    if(Array.isArray(existing)){
+      await ghSaveJson('data/blogs.json', existing, 'Repair: verify blogs.json');
+      msg.style.color='var(--green)'; msg.textContent=`✅ blogs.json は正常です（${existing.length}件）`;
+    } else {
+      await ghSaveJson('data/blogs.json', [], 'Repair: initialize blogs.json');
+      msg.style.color='var(--green)'; msg.textContent='✅ blogs.json を空で初期化しました。';
+    }
+  }catch(e){ msg.style.color='#a32d2d'; msg.textContent='❌ エラー: '+e.message; }
+}
+
+async function checkGhFiles(){
+  const msg=document.getElementById('repair-msg');
+  msg.textContent='確認中...';
+  const results=[];
+  for(const path of ['data/docs.json','data/blogs.json']){
+    try{
+      const d=await ghFetch(path);
+      const size=Math.round((d.size||0)/1024);
+      results.push(`✅ ${path}（${size}KB）`);
+    }catch(e){ results.push(`❌ ${path}：見つかりません`); }
+  }
+  msg.style.color='var(--text)'; msg.innerHTML=results.join('<br>');
 }
 
 // ========== INIT ==========
