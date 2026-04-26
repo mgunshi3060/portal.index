@@ -132,9 +132,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 .tags-text-input{border:none;outline:none;font-size:13px;min-width:80px;flex:1;background:transparent;font-family:inherit;}
 
 /* SUBMIT */
-.submit-btn{width:100%;height:42px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
-.submit-btn:hover{background:var(--green-d);}
-.submit-btn:disabled{opacity:.5;cursor:not-allowed;}
 
 /* DETAIL MODAL */
 .detail-cover{width:100%;max-height:280px;object-fit:cover;border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:block;}
@@ -150,15 +147,8 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 .toast.show{transform:translateY(0);opacity:1;}
 
 /* NAME PROMPT */
-.name-prompt-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;}
 .name-prompt-bg.open{display:flex;}
-.name-prompt-box{background:var(--surface);border-radius:var(--radius-lg);padding:28px 28px 24px;width:320px;text-align:center;}
-.name-prompt-icon{font-size:36px;margin-bottom:10px;}
-.name-prompt-title{font-size:15px;font-weight:700;margin-bottom:4px;}
-.name-prompt-sub{font-size:12px;color:var(--text2);margin-bottom:16px;}
-.name-prompt-input{width:100%;height:40px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:14px;outline:none;text-align:center;margin-bottom:12px;}
 .name-prompt-input:focus{border-color:var(--green);}
-.name-prompt-btn{width:100%;height:40px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;}
 
 .ring{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -189,21 +179,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 </nav>
 
 <!-- NAME PROMPT -->
-<div class="name-prompt-bg" id="name-prompt">
-  <div class="name-prompt-box">
-    <div class="name-prompt-icon">👋</div>
-    <div class="name-prompt-title">はじめまして！</div>
-    <div class="name-prompt-sub">投稿者名として使用します（後から変更可）</div>
-    <input class="name-prompt-input" type="text" id="name-input" placeholder="例：田中 健" maxlength="20" onkeydown="if(event.key==='Enter')saveName()">
-    <button class="name-prompt-btn" onclick="saveName()">決定</button>
-  </div>
-</div>
 
 <!-- MAIN -->
 <div class="container">
   <div class="page-header">
     <div class="page-title">✏️ 社内ブログ</div>
-    <button class="write-btn" onclick="openPostModal()">＋ 投稿する</button>
+<a href="admin.html" style="font-size:11px;color:var(--text3);border:0.5px solid var(--border);padding:5px 12px;border-radius:20px;text-decoration:none;">⚙ 管理者ページ</a>
   </div>
 
   <div class="filter-row">
@@ -234,60 +215,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 </div>
 
 <!-- POST MODAL -->
-<div class="modal-bg" id="post-modal" onclick="if(event.target===this)closePostModal()">
-  <div class="modal-box">
-    <div class="modal-hd">
-      <div class="modal-title-text">✏️ 新規投稿</div>
-      <button class="modal-close" onclick="closePostModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">タイトル<span class="req">*</span></label>
-        <input class="form-input" type="text" id="f-title" placeholder="投稿タイトルを入力してください" maxlength="80">
-      </div>
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label">投稿者名<span class="req">*</span></label>
-          <input class="form-input" type="text" id="f-author" placeholder="例：田中 健" maxlength="20">
-        </div>
-        <div class="form-group">
-          <label class="form-label">カテゴリ<span class="req">*</span></label>
-          <select class="form-select" id="f-category">
-            <option value="tech">💡 技術・IT</option>
-            <option value="report">🏭 現場レポート</option>
-            <option value="idea">💭 アイデア</option>
-            <option value="event">🎉 イベント</option>
-            <option value="other">その他</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">タグ（Enterで追加）</label>
-        <div class="tags-input-wrap" id="tags-wrap" onclick="document.getElementById('tag-input').focus()">
-          <input class="tags-text-input" type="text" id="tag-input" placeholder="タグを入力..." maxlength="15" onkeydown="handleTagInput(event)">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">カバー画像（任意）</label>
-        <div class="img-upload-zone" id="img-zone" onclick="document.getElementById('img-input').click()" ondragover="onImgDragOver(event)" ondragleave="onImgDragLeave(event)" ondrop="onImgDrop(event)">
-          <input type="file" id="img-input" accept="image/*" style="display:none" onchange="onImgSelect(event)">
-          <div id="img-preview-area">
-            <div style="font-size:24px;margin-bottom:4px;">🖼</div>
-            <div class="img-upload-zone-text">クリック または ドラッグ＆ドロップ<br>JPG・PNG・GIF 対応</div>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">本文<span class="req">*</span></label>
-        <textarea class="form-textarea" id="f-content" placeholder="投稿内容を入力してください...&#10;&#10;改行はそのまま反映されます。"></textarea>
-      </div>
-      <div id="post-err" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none;"></div>
-      <button class="submit-btn" id="submit-btn" onclick="submitPost()">
-        <span>投稿する</span>
-      </button>
-    </div>
-  </div>
-</div>
 
 <!-- DETAIL MODAL -->
 <div class="modal-bg" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
@@ -302,10 +229,10 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script>
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
-const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
 const GH_OWNER='mgunshi3060';
 const GH_REPO='portal.index';
 const GH_BRANCH='main';
@@ -325,46 +252,12 @@ let currentSearch='';
 let pendingTags=[];
 let pendingImgData=null;
 
-// ===== GitHub API (ブログ投稿用) =====
-function ghToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
-async function ghFetch(path,method='GET',body=null){
-  const token=ghToken();
-  if(!token) throw new Error('GitHub Tokenが設定されていません。管理者ページの「GitHub設定」で入力してください。');
-  const res=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,{
-    method,headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-    body:body?JSON.stringify(body):null
-  });
-  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(`GitHub APIエラー(${res.status}): ${e.message||res.statusText}`); }
-  return res.json();
-}
-async function ghGetSha(path){ try{ return (await ghFetch(path)).sha; }catch(e){ return null; } }
-async function ghSaveJson(path,data,message){
-  const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
-  const sha=await ghGetSha(path);
-  const body={message,content,branch:GH_BRANCH};
-  if(sha) body.sha=sha;
-  return ghFetch(path,'PUT',body);
-}
-
-// ===== DATA LOAD (GitHub raw) =====
+// ===== DATA LOAD (api.js に委譲) =====
 async function loadBlogs(){
-  try{
-    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
-    if(res.ok){ blogs=await res.json(); localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); return; }
-  }catch(e){}
-  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }catch(e){ blogs=[]; }
+  blogs = await apiLoad('blogs', BLOG_KEY);
 }
 
 // ===== NAME =====
-function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
-function saveName(){
-  const v=document.getElementById('name-input').value.trim();
-  if(!v) return;
-  localStorage.setItem(NAME_KEY,v);
-  document.getElementById('name-prompt').classList.remove('open');
-  updateAvatar();
-  document.getElementById('f-author').value=v;
-}
 function updateAvatar(){
   const n=getUsername();
   const av=document.getElementById('nav-avatar');
@@ -469,26 +362,7 @@ function setFilterSidebar(f){
 function setSearch(v){ currentSearch=v; renderList(); }
 
 // ===== POST MODAL =====
-function openPostModal(){
-  const name=getUsername();
-  if(!name){
-    document.getElementById('name-prompt').classList.add('open');
-    setTimeout(()=>document.getElementById('name-input').focus(),100);
-    return;
-  }
-  document.getElementById('f-author').value=name;
-  document.getElementById('f-title').value='';
-  document.getElementById('f-content').value='';
-  document.getElementById('f-category').value='tech';
-  document.getElementById('post-err').style.display='none';
-  pendingTags=[];
-  pendingImgData=null;
-  renderTagPills();
-  resetImgPreview();
-  document.getElementById('post-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('f-title').focus(),100);
-}
-function closePostModal(){ document.getElementById('post-modal').classList.remove('open'); }
+
 
 // TAGS
 function handleTagInput(e){
@@ -542,61 +416,7 @@ function resetImgPreview(){
   document.getElementById('img-preview-area').innerHTML=`<div style="font-size:24px;margin-bottom:4px;">🖼</div><div class="img-upload-zone-text">クリック または ドラッグ＆ドロップ<br>JPG・PNG・GIF 対応</div>`;
 }
 
-// SUBMIT
-async function submitPost(){
-  const title=document.getElementById('f-title').value.trim();
-  const author=document.getElementById('f-author').value.trim();
-  const content=document.getElementById('f-content').value.trim();
-  const category=document.getElementById('f-category').value;
-  const errEl=document.getElementById('post-err');
 
-  if(!title||!author||!content){
-    errEl.textContent='タイトル・投稿者名・本文は必須です';
-    errEl.style.display='block';
-    return;
-  }
-  errEl.style.display='none';
-  localStorage.setItem(NAME_KEY,author);
-  updateAvatar();
-
-  const btn=document.getElementById('submit-btn');
-  btn.disabled=true;
-  btn.innerHTML='<div class="ring"></div><span>GitHubへ投稿中...</span>';
-
-  try{
-    // 最新データをGitHubから取得してから追記
-    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
-    if(res.ok) blogs=await res.json();
-
-    const post={
-      id:'blog_'+Date.now(),
-      title,author,content,category,
-      tags:pendingTags.slice(),
-      imageData:pendingImgData,
-      date:new Date().toISOString()
-    };
-    blogs.unshift(post);
-    await ghSaveJson('data/blogs.json', blogs, 'New blog post: '+title);
-    localStorage.setItem(BLOG_KEY,JSON.stringify(blogs));
-    renderList();
-    renderSidebar();
-    closePostModal();
-    showToast('投稿しました ✓');
-  }catch(e){
-    errEl.textContent='投稿エラー: '+e.message;
-    errEl.style.display='block';
-    // Tokenがない場合はローカルにのみ保存
-    if(!ghToken()){
-      const post={id:'blog_'+Date.now(),title,author,content,category,tags:pendingTags.slice(),imageData:pendingImgData,date:new Date().toISOString()};
-      blogs.unshift(post);
-      localStorage.setItem(BLOG_KEY,JSON.stringify(blogs));
-      renderList();renderSidebar();closePostModal();
-      showToast('ローカルに保存しました（GitHub未設定）');
-    }
-  }
-  btn.disabled=false;
-  btn.innerHTML='<span>投稿する</span>';
-}
 
 // ===== DETAIL MODAL =====
 function openDetail(id){
@@ -641,9 +461,7 @@ async function init(){
   renderSidebar();
   updateAvatar();
   if(getUsername()) document.getElementById('f-author').value=getUsername();
-  if(!getUsername()){
-    setTimeout(()=>document.getElementById('name-prompt').classList.add('open'),400);
-  }
+
 }
 init();
 
