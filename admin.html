@@ -170,6 +170,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
       <button class="sb-item" onclick="showAdmin('blog-manage',this)">📰 ブログ管理</button>
       <div class="sb-sep"></div>
       <div class="sb-section">設定</div>
+      <button class="sb-item" onclick="showAdmin('portal-settings',this)">🌤 ポータル設定</button>
       <button class="sb-item" onclick="showAdmin('github',this)">🔑 GitHub設定</button>
       <button class="sb-item" onclick="showAdmin('settings',this)">⚙ サイト設定</button>
       <button class="sb-item" onclick="showAdmin('password',this)">🔒 パスワード変更</button>
@@ -372,6 +373,68 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
         </div>
       </div>
 
+      <!-- ===== PORTAL SETTINGS ===== -->
+      <div class="admin-page" id="ap-portal-settings">
+        <div class="page-title">🌤 ポータル設定</div>
+
+        <!-- 天気設定 -->
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:500px;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;">☀️ お天気設定</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+            ホーム画面の日付横に表示されるお天気の取得地域を設定します。<br>
+            都市名（英語・日本語）または郵便番号で指定できます。
+          </div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label>地域名（都市名 or 郵便番号）</label>
+            <input type="text" id="weather-city-input" placeholder="例：Ushiku / Tokyo / 大阪 / Tsukuba"
+              style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:14px;outline:none;font-family:inherit;">
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:12px;">
+            ✅ 使用例：<b>Ushiku</b>（牛久市）、<b>Tsukuba</b>（つくば市）、<b>Tokyo</b>、<b>Osaka</b><br>
+            ※ 日本語でも概ね動作しますが英語のほうが確実です
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="upload-btn" onclick="saveWeatherCity()">保存して反映</button>
+            <button onclick="testWeather()" style="height:38px;padding:0 14px;border:0.5px solid var(--border);border-radius:var(--radius);background:none;font-size:13px;cursor:pointer;">テスト取得</button>
+            <button onclick="clearWeatherCity()" style="height:38px;padding:0 14px;border:0.5px solid var(--red);color:var(--red);border-radius:var(--radius);background:none;font-size:13px;cursor:pointer;">クリア</button>
+          </div>
+          <div id="weather-test-result" style="margin-top:12px;font-size:13px;padding:10px;border-radius:var(--radius);display:none;"></div>
+        </div>
+
+        <!-- Googleカレンダー設定 -->
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:500px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;">📅 Googleカレンダー設定</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+            会社共有のGoogleカレンダーを連携すると、一般ページのホームに直近イベントが表示されます。
+          </div>
+          <div class="info-box info-amber" style="margin-bottom:14px;">
+            ⚠ カレンダーを <b>「一般公開」</b> に設定してから連携してください。<br>
+            Google カレンダー → 設定 → カレンダーの設定 → アクセス権限 → 「一般公開」にチェック
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label>カレンダーID</label>
+            <input type="text" id="cal-id-admin" placeholder="xxx@group.calendar.google.com"
+              style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:monospace;">
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label>Google API キー</label>
+            <input type="text" id="cal-key-admin" placeholder="AIzaSy..."
+              style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:monospace;">
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">
+            APIキー取得手順：<br>
+            1. Google Cloud Console → APIとサービス → 認証情報<br>
+            2. 「APIキーを作成」→ Google Calendar API を有効化<br>
+            3. APIキーの制限（推奨）：HTTPリファラー制限でGitHub Pagesのドメインを指定
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="upload-btn" onclick="saveCalAdmin()">保存</button>
+            <button onclick="clearCalAdmin()" style="height:38px;padding:0 14px;border:0.5px solid var(--red);color:var(--red);border-radius:var(--radius);background:none;font-size:13px;cursor:pointer;">クリア</button>
+          </div>
+          <div id="cal-admin-msg" style="margin-top:10px;font-size:12px;"></div>
+        </div>
+      </div>
+
       <!-- ===== SETTINGS ===== -->
       <div class="admin-page" id="ap-settings">
         <div class="page-title">⚙ サイト設定</div>
@@ -487,6 +550,76 @@ function doLogout(){
   document.getElementById('login-pw').value='';
   document.getElementById('login-err').style.display='none';
 }
+// ========== PORTAL SETTINGS ==========
+const WEATHER_CITY_KEY='portal_weather_city';
+const CAL_ID_KEY='portal_cal_id';
+const CAL_KEY_KEY='portal_cal_key';
+
+function initPortalSettings(){
+  const city=localStorage.getItem(WEATHER_CITY_KEY)||'';
+  document.getElementById('weather-city-input').value=city;
+  document.getElementById('cal-id-admin').value=localStorage.getItem(CAL_ID_KEY)||'';
+  document.getElementById('cal-key-admin').value=localStorage.getItem(CAL_KEY_KEY)||'';
+}
+
+function saveWeatherCity(){
+  const v=document.getElementById('weather-city-input').value.trim();
+  if(!v){showToast('地域名を入力してください','error');return;}
+  localStorage.setItem(WEATHER_CITY_KEY,v);
+  showToast('天気の地域を「'+v+'」に設定しました ✓');
+}
+
+function clearWeatherCity(){
+  localStorage.removeItem(WEATHER_CITY_KEY);
+  document.getElementById('weather-city-input').value='';
+  showToast('天気設定をクリアしました');
+}
+
+async function testWeather(){
+  const cityQuery=document.getElementById('weather-city-input').value.trim();
+  const resultEl=document.getElementById('weather-test-result');
+  if(!cityQuery){showToast('地域名を入力してください','error');return;}
+  resultEl.style.display='block';
+  resultEl.style.background='#f5f4f1';
+  resultEl.textContent='取得中...';
+  try{
+    const geoRes=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cityQuery)+'&count=1&language=ja');
+    const geoData=await geoRes.json();
+    if(!geoData.results||!geoData.results.length) throw new Error('都市が見つかりません: "'+cityQuery+'"');
+    const {latitude:lat,longitude:lon,name:cityName,country}=geoData.results[0];
+    const wxRes=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo');
+    const wx=await wxRes.json();
+    const cur=wx.current;
+    const wmoIcons={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',80:'🌦',81:'🌧',95:'⛈'};
+    const icon=wmoIcons[cur.weathercode]||'🌡';
+    resultEl.style.background='var(--green-l)';
+    resultEl.innerHTML='✅ 取得成功！ &nbsp;'+icon+' <b>'+cityName+'</b> ('+country+') &nbsp; '+Math.round(cur.temperature_2m)+'°C &nbsp; 体感'+Math.round(cur.apparent_temperature)+'°C';
+  }catch(e){
+    resultEl.style.background='var(--red-l)';
+    resultEl.textContent='❌ '+e.message+' — 都市名の綴りを確認してください（英語推奨）';
+  }
+}
+
+function saveCalAdmin(){
+  const id=document.getElementById('cal-id-admin').value.trim();
+  const key=document.getElementById('cal-key-admin').value.trim();
+  localStorage.setItem(CAL_ID_KEY,id);
+  localStorage.setItem(CAL_KEY_KEY,key);
+  const msg=document.getElementById('cal-admin-msg');
+  msg.style.color='var(--green)';
+  msg.textContent='✅ 保存しました。一般ページのホームに反映されます。';
+  showToast('カレンダー設定を保存しました ✓');
+}
+
+function clearCalAdmin(){
+  localStorage.removeItem(CAL_ID_KEY);
+  localStorage.removeItem(CAL_KEY_KEY);
+  document.getElementById('cal-id-admin').value='';
+  document.getElementById('cal-key-admin').value='';
+  document.getElementById('cal-admin-msg').textContent='';
+  showToast('カレンダー設定をクリアしました');
+}
+
 function changePassword(){
   const cur=document.getElementById('pw-current').value;
   const nw=document.getElementById('pw-new').value;
@@ -571,6 +704,7 @@ function showAdmin(id,btn){
   document.getElementById('ap-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='manage') renderManage();
+  if(id==='portal-settings') initPortalSettings();
   if(id==='blog-manage'){ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; renderBlogManage(); }
   if(id==='github'){ const t=ghToken(); if(t) document.getElementById('gh-token-input').value=t; }
 }
