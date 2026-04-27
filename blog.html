@@ -171,10 +171,17 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
   .page-title{font-size:17px;}
   .page-header > a{display:none;}
 
-  /* フィルター: 横スクロール */
-  .filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;gap:6px;}
-  .filter-row::-webkit-scrollbar{display:none;}
-  .filter-btn{white-space:nowrap;flex-shrink:0;}
+  /* フィルター: 2列グリッドで縦に収める（横スクロールなし） */
+  .filter-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    flex-wrap:unset;
+    overflow:visible;
+    padding-bottom:0;
+    margin-bottom:14px;
+  }
+  .filter-btn{white-space:nowrap;text-align:center;padding:8px 6px;font-size:12px;}
   .search-input{display:none;}
 
   /* カード */
@@ -224,8 +231,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
   <a class="nav-tab" href="index.html">ホーム</a>
   <a class="nav-tab" href="index.html#notice">お知らせ</a>
   <a class="nav-tab active" href="blog.html">社内ブログ</a>
-  <a class="nav-tab" href="index.html#security">セキュリティ</a>
-  <a class="nav-tab" href="index.html#files">ファイル検索</a>
   <div class="nav-right">
     <a class="admin-link" href="admin.html">⚙ 管理者</a>
   </div>
@@ -244,9 +249,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
     </a>
     <a class="bbn-tab active" href="blog.html">
       <div class="bbn-tab-icon">✏️</div><div>ブログ</div>
-    </a>
-    <a class="bbn-tab" href="index.html">
-      <div class="bbn-tab-icon">🔒</div><div>セキュリティ</div>
     </a>
     <a class="bbn-tab" href="admin.html">
       <div class="bbn-tab-icon">⚙️</div><div>管理者</div>
