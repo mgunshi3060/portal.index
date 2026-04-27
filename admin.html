@@ -288,15 +288,31 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           </div>
           <div class="fl">
             <label>カバー画像（任意）</label>
-            <div class="img-upload-zone" id="blog-img-zone"
-              onclick="document.getElementById('blog-img-input').click()"
-              ondragover="onBlogImgDragOver(event)" ondragleave="onBlogImgDragLeave()" ondrop="onBlogImgDrop(event)">
-              <input type="file" id="blog-img-input" accept="image/*" style="display:none" onchange="onBlogImgSelect(event)">
-              <div id="blog-img-preview">
-                <div style="font-size:24px;margin-bottom:4px;">🖼</div>
-                <div style="font-size:12px;color:var(--text2);">クリック または ドラッグ＆ドロップ（JPG・PNG・GIF）</div>
+            <!-- 画像選択 → GitHub images/ フォルダへ自動アップロード → URLを自動セット -->
+            <div id="blog-img-drop"
+              onclick="document.getElementById('blog-img-file').click()"
+              ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="event.preventDefault();this.style.borderColor='var(--border)';onBlogImgDrop(event)"
+              style="border:1.5px dashed var(--border);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;transition:border-color .15s;background:#fafaf8;position:relative;">
+              <input type="file" id="blog-img-file" accept="image/*" style="display:none" onchange="onBlogImgSelect(this.files[0]);this.value=''">
+              <div id="blog-img-idle">
+                <div style="font-size:26px;margin-bottom:6px;">🖼</div>
+                <div style="font-size:13px;color:var(--text2);">クリックまたはドラッグ＆ドロップ</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:3px;">→ <code style="background:#eee;padding:1px 5px;border-radius:3px;">images/</code> フォルダへ自動アップロード</div>
+              </div>
+              <div id="blog-img-uploading" style="display:none;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--text2);">
+                <div class="ring"></div>GitHubへアップロード中...
               </div>
             </div>
+            <div id="blog-img-preview" style="margin-top:8px;display:none;">
+              <div style="position:relative;display:inline-block;max-width:100%;">
+                <img id="blog-img-preview-img" src="" style="max-width:100%;max-height:180px;border-radius:var(--radius);border:0.5px solid var(--border);display:block;">
+                <button onclick="clearBlogImg()" style="position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(0,0,0,.6);color:white;border:none;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;">✕</button>
+              </div>
+              <div id="blog-img-path" style="font-size:10px;color:var(--text3);margin-top:4px;word-break:break-all;"></div>
+            </div>
+            <input type="hidden" id="b-img-url">
           </div>
           <div class="fl">
             <label>本文 <span style="color:var(--red)">*</span></label>
@@ -324,6 +340,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             <option value="other">その他</option>
           </select>
           <button class="upload-btn" style="white-space:nowrap;font-size:12px;height:34px;padding:0 14px;" onclick="loadRemoteBlogs()">🔄 再読み込み</button>
+          <button onclick="deleteAllBlogs()" style="white-space:nowrap;font-size:12px;height:34px;padding:0 14px;background:var(--red);color:white;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;">🗑 全件削除</button>
         </div>
         <table class="doc-table">
           <thead>
@@ -413,12 +430,12 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           </div>
           <div class="form-group" style="margin-bottom:10px;">
             <label>カレンダーID</label>
-            <input type="text" id="cal-id-admin" placeholder="xxx@group.calendar.google.com"
+            <input type="text" id="cal-id-admin" placeholder="ccd7372a8b2c3bb83b675d07aff1c3388a3fdb1b052815dab903a35e5409ee49@group.calendar.google.com"
               style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:monospace;">
           </div>
           <div class="form-group" style="margin-bottom:10px;">
             <label>Google API キー</label>
-            <input type="text" id="cal-key-admin" placeholder="AIzaSy..."
+            <input type="text" id="cal-key-admin" placeholder="AIzaSyACezsDAmNWF5EspHrzBhojDMuJpQPjv0A"
               style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:monospace;">
           </div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">
@@ -466,67 +483,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 
 <div class="toast" id="toast"></div>
 
+<script src="api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ========== GITHUB API ==========
-const GH_OWNER='mgunshi3060';
-const GH_REPO='portal.index';
-const GH_BRANCH='main';
-const GH_TOKEN_KEY='portal_gh_token';
-
-function ghToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
-
-async function ghFetch(path, method='GET', body=null){
-  const token=ghToken();
-  if(!token) throw new Error('GitHub Token が設定されていません。「GitHub設定」ページで入力してください。');
-  const res=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`,{
-    method,
-    headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-    body:body?JSON.stringify(body):null
-  });
-  if(!res.ok){
-    const err=await res.json().catch(()=>({}));
-    throw new Error(`GitHub APIエラー(${res.status}): ${err.message||res.statusText}`);
-  }
-  return res.json();
-}
-
-async function ghGetSha(path){
-  try{ const d=await ghFetch(path); return d.sha; }catch(e){ return null; }
-}
-
-async function ghSaveJson(path, data, message){
-  const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
-  const sha=await ghGetSha(path);
-  const body={message,content,branch:GH_BRANCH};
-  if(sha) body.sha=sha;
-  return ghFetch(path,'PUT',body);
-}
-
-async function ghLoadJson(path){
-  try{
-    const d=await ghFetch(path);
-    return JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
-  }catch(e){ return null; }
-}
-
-async function ghCheckToken(){
-  const token=ghToken();
-  if(!token) return {ok:false,msg:'Token未設定'};
-  try{
-    const res=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}`,{
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}
-    });
-    if(res.status===200) return {ok:true,msg:'✅ 接続OK'};
-    if(res.status===401) return {ok:false,msg:'❌ Token無効'};
-    if(res.status===404) return {ok:false,msg:'❌ リポジトリ未検出'};
-    return {ok:false,msg:`❌ エラー: ${res.status}`};
-  }catch(e){ return {ok:false,msg:'❌ ネットワークエラー'}; }
-}
-
+// ========== GITHUB API → api.js に移管 ==========
+// GH_OWNER, GH_REPO, ghToken, ghFetch, ghGetSha, ghSaveJson は api.js で定義
 // ========== AUTH ==========
+
 const PW_KEY='portal_admin_pw';
 const DEFAULT_ID='admin';
 const DEFAULT_PW='portal2025';
@@ -637,7 +602,7 @@ function changePassword(){
 async function saveToken(){
   const val=document.getElementById('gh-token-input').value.trim();
   if(!val){showToast('Tokenを入力してください','error');return;}
-  localStorage.setItem(GH_TOKEN_KEY,val);
+  localStorage.setItem('portal_gh_token',val);
   const badge=document.getElementById('token-status-badge');
   badge.style.display='inline-flex';
   badge.className='token-status token-ng';
@@ -650,7 +615,7 @@ async function saveToken(){
   else showToast(r.msg,'error');
 }
 function clearToken(){
-  localStorage.removeItem(GH_TOKEN_KEY);
+  localStorage.removeItem('portal_gh_token');
   document.getElementById('gh-token-input').value='';
   document.getElementById('token-status-badge').style.display='none';
   updateGhStatusBadge({ok:false,msg:'Token削除'});
@@ -676,7 +641,7 @@ const BLOG_KEY='portal_blogs';
 
 async function loadRemoteDocs(){
   showToast('GitHubから読み込み中...');
-  const data=await ghLoadJson('data/docs.json');
+  const data=await apiGetDocs().catch(()=>null);
   if(data){ docs=data; localStorage.setItem(STORE_KEY,JSON.stringify(docs)); }
   else{ const r=localStorage.getItem(STORE_KEY); docs=r?JSON.parse(r):[]; }
   updateSbCount();
@@ -685,7 +650,7 @@ async function loadRemoteDocs(){
 }
 async function loadRemoteBlogs(){
   showToast('GitHubから読み込み中...');
-  const data=await ghLoadJson('data/blogs.json');
+  const data=await apiGetBlogs().catch(()=>null);
   if(data){ blogDocs=data; localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs)); }
   else{ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; }
   renderBlogManage();
@@ -703,10 +668,10 @@ function showAdmin(id,btn){
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('ap-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(id==='manage') renderManage();
+  if(id==='manage'){ apiGetDocs().then(data=>{ docs=data; localStorage.setItem(STORE_KEY,JSON.stringify(data)); renderManage(); }).catch(()=>renderManage()); }
   if(id==='portal-settings') initPortalSettings();
   if(id==='blog-manage'){ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; renderBlogManage(); }
-  if(id==='github'){ const t=ghToken(); if(t) document.getElementById('gh-token-input').value=t; }
+  if(id==='github'){ const t=_ghToken(); if(t) document.getElementById('gh-token-input').value=t; }
 }
 
 // ========== PDF UPLOAD ==========
@@ -726,14 +691,17 @@ async function handleFiles(files){
     const url=URL.createObjectURL(f);
     const pdf=await pdfjsLib.getDocument(url).promise;
     const page=await pdf.getPage(1);
-    const vp=page.getViewport({scale:0.7});
+    const vp=page.getViewport({scale:0.5});
     const canvas=document.createElement('canvas');
     canvas.width=vp.width; canvas.height=vp.height;
     await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    const thumbData=canvas.toDataURL('image/jpeg',0.4);  // 圧縮率高め（JSON軽量化）
-    // PDF本体もBase64で読み込む
+    // プレビュー用DataURL（画面表示のみ・JSONには保存しない）
+    const thumbPreview=canvas.toDataURL('image/jpeg',0.5);
+    // GitHub アップロード用Blob
+    const thumbBlob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.6));
+    // PDF本体Base64
     const pdfB64=await fileToBase64(f);
-    pendingFiles.push({name:f.name,pdfB64,numPages:pdf.numPages,thumbData});
+    pendingFiles.push({name:f.name, pdfB64, numPages:pdf.numPages, thumbPreview, thumbBlob});
   }
   renderPending();
   document.getElementById('meta-form').style.display=pendingFiles.length?'block':'none';
@@ -753,7 +721,7 @@ function renderPending(){
   if(!pendingFiles.length){ el.innerHTML=''; return; }
   el.innerHTML=pendingFiles.map((f,i)=>`
     <div class="pending-item">
-      <div class="pending-thumb"><img src="${f.thumbData}" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="pending-thumb"><img src="${f.thumbPreview}" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="flex:1">
         <div class="pending-name">${f.name}</div>
         <div class="pending-pages">${f.numPages}ページ</div>
@@ -769,20 +737,9 @@ function removePending(i){
   if(!pendingFiles.length) document.getElementById('meta-form').style.display='none';
 }
 
-// PDFファイルをGitHubの pdfs/ フォルダへアップロード
-async function ghUploadPdf(filename, base64DataUrl){
-  // "data:application/pdf;base64,XXXX" → "XXXX" だけ取り出す
-  const b64=base64DataUrl.split(',')[1];
-  const path='pdfs/'+filename;
-  const sha=await ghGetSha(path);
-  const body={message:'Upload PDF: '+filename, content:b64, branch:GH_BRANCH};
-  if(sha) body.sha=sha;
-  return ghFetch(path,'PUT',body);
-}
-
 async function doUpload(){
   if(!pendingFiles.length) return;
-  if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); showAdmin('github',null); return; }
+  if(!_ghToken()){ showToast('GitHub Tokenを設定してください','error'); showAdmin('github',null); return; }
   const tag=document.getElementById('meta-tag').value;
   const date=document.getElementById('meta-date').value||new Date().toISOString().slice(0,10);
   const urgent=document.getElementById('meta-urgent').checked;
@@ -791,7 +748,7 @@ async function doUpload(){
 
   try{
     // 既存データをGitHubから取得
-    const remote=await ghLoadJson('data/docs.json');
+    const remote=await apiGetDocs().catch(()=>null);
     if(remote) docs=remote;
 
     for(let i=0;i<pendingFiles.length;i++){
@@ -800,18 +757,23 @@ async function doUpload(){
       document.getElementById('progbar_'+i).style.width='20%';
 
       // ① PDFファイルを pdfs/ フォルダへ個別アップロード
-      await ghUploadPdf(f.name, f.pdfB64);
-      document.getElementById('progbar_'+i).style.width='70%';
+      await apiUploadPdf(f.name, f.pdfB64);
+      document.getElementById('progbar_'+i).style.width='50%';
 
-      // ② JSONにはパスとサムネだけ記録（PDF本体は含めない）
-      const pdfUrl='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/pdfs/'+encodeURIComponent(f.name);
+      // ② サムネを images/thumbs/ フォルダへアップロード（JSONには埋め込まない）
+      const thumbName='thumb_'+Date.now()+'_'+f.name.replace(/\.pdf$/i,'.jpg');
+      const thumbUrl=await apiUploadImage(thumbName, f.thumbBlob, 'images/thumbs/');
+      document.getElementById('progbar_'+i).style.width='85%';
+
+      // ③ JSONにはURLだけ記録（Base64・バイナリ一切なし → 何件でもOK）
+      const pdfUrl=_GH_RAW+'pdfs/'+encodeURIComponent(f.name);
       const id='doc_'+Date.now()+'_'+i;
-      docs.unshift({id, name:f.name, tag, date, urgent, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
-      document.getElementById('progbar_'+i).style.width='90%';
+      docs.unshift({id, name:f.name, tag, date, urgent, numPages:f.numPages, thumbUrl, url:pdfUrl});
+      document.getElementById('progbar_'+i).style.width='95%';
     }
 
     // ③ docs.jsonを更新（サムネのみ、軽量）
-    await ghSaveJson('data/docs.json', docs, `Add ${pendingFiles.length} PDF(s): ${pendingFiles.map(f=>f.name).join(', ')}`);
+    await apiSaveDocs(docs, `Add ${pendingFiles.length} PDF(s): ${pendingFiles.map(f=>f.name).join(', ')}`);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
 
     pendingFiles.forEach((_,i)=>{ document.getElementById('progbar_'+i).style.width='100%'; });
@@ -842,7 +804,7 @@ function renderManage(q='',tagFilter=''){
   tbody.innerHTML=filtered.map(d=>{
     const t=TAG[d.tag]||TAG.other;
     return `<tr>
-      <td><div class="doc-thumb-cell">${d.thumbData?`<img src="${d.thumbData}">`:'📄'}</div></td>
+      <td><div class="doc-thumb-cell">${(d.thumbUrl||d.thumbData)?`<img src="${d.thumbUrl||d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`:'📄'}</div></td>
       <td>
         <div style="font-size:13px;font-weight:600;">${d.name}</div>
         ${d.urgent?'<span class="urgent-mark">⚠ 重要</span>':''}
@@ -860,12 +822,20 @@ function renderManage(q='',tagFilter=''){
 
 async function deleteDoc(id){
   if(!confirm('このドキュメントを削除しますか？（GitHubからも削除されます）')) return;
-  docs=docs.filter(d=>d.id!==id);
   try{
-    await ghSaveJson('data/docs.json', docs, 'Delete document: '+id);
+    const latest=await apiGetDocs();
+    docs=latest.filter(d=>d.id!==id);
+    await apiSaveDocs(docs, 'Delete document: '+id);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
     showToast('削除しました ✓');
-  }catch(e){ showToast('削除エラー: '+e.message,'error'); }
+  }catch(e){
+    docs=docs.filter(d=>d.id!==id);
+    try{
+      await apiSaveDocs(docs, 'Delete document: '+id);
+      localStorage.setItem(STORE_KEY,JSON.stringify(docs));
+      showToast('削除しました ✓');
+    }catch(e2){ showToast('削除エラー: '+e2.message,'error'); }
+  }
   renderManage(); updateSbCount();
 }
 
@@ -874,7 +844,7 @@ async function toggleUrgent(id){
   if(!d) return;
   d.urgent=!d.urgent;
   try{
-    await ghSaveJson('data/docs.json', docs, (d.urgent?'Set urgent: ':'Unset urgent: ')+d.name);
+    await apiSaveDocs(docs, (d.urgent?'Set urgent: ':'Unset urgent: ')+d.name);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
     showToast(d.urgent?'重要フラグを設定しました':'重要フラグを解除しました');
   }catch(e){ showToast('エラー: '+e.message,'error'); }
@@ -882,29 +852,45 @@ async function toggleUrgent(id){
 }
 
 // ========== BLOG POST ==========
-let pendingBlogImg=null;
+// 画像はGitHub images/フォルダへ自動アップ → URLのみblogs.jsonに保存（Base64埋め込みなし）
 
-function onBlogImgDragOver(e){ e.preventDefault(); document.getElementById('blog-img-zone').classList.add('drag'); }
-function onBlogImgDragLeave(){ document.getElementById('blog-img-zone').classList.remove('drag'); }
-function onBlogImgDrop(e){ e.preventDefault(); document.getElementById('blog-img-zone').classList.remove('drag'); if(e.dataTransfer.files[0]) handleBlogImg(e.dataTransfer.files[0]); }
-function onBlogImgSelect(e){ if(e.target.files[0]) handleBlogImg(e.target.files[0]); e.target.value=''; }
-
-function handleBlogImg(f){
-  if(!f.type.startsWith('image/')){ showToast('画像ファイルを選択してください','error'); return; }
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    pendingBlogImg=ev.target.result;
-    document.getElementById('blog-img-preview').innerHTML=`
-      <div style="position:relative;display:inline-block;">
-        <img src="${pendingBlogImg}" style="max-width:100%;max-height:160px;border-radius:var(--radius);">
-        <button onclick="clearBlogImg(event)" style="position:absolute;top:6px;right:6px;width:24px;height:24px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;">✕</button>
-      </div>`;
-  };
-  reader.readAsDataURL(f);
+function onBlogImgDrop(e){ const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) onBlogImgSelect(f); }
+function onBlogImgSelect(file){
+  if(!file||!file.type.startsWith('image/')){ showToast('画像ファイルを選択してください','error'); return; }
+  uploadBlogImage(file);
 }
-function clearBlogImg(e){ if(e)e.stopPropagation(); pendingBlogImg=null; resetBlogImgPreview(); }
-function resetBlogImgPreview(){
-  document.getElementById('blog-img-preview').innerHTML=`<div style="font-size:24px;margin-bottom:4px;">🖼</div><div style="font-size:12px;color:var(--text2);">クリック または ドラッグ＆ドロップ（JPG・PNG・GIF）</div>`;
+
+async function uploadBlogImage(file){
+  if(!_ghToken()){ showToast('GitHub Tokenを設定してください','error'); return; }
+  // アップロード中表示
+  document.getElementById('blog-img-idle').style.display='none';
+  const uploading=document.getElementById('blog-img-uploading');
+  uploading.style.display='flex';
+  document.getElementById('blog-img-drop').style.pointerEvents='none';
+  try{
+    const safeName=Date.now()+'_'+file.name.replace(/[\s\u3000]+/g,'_');
+    const rawUrl=await apiUploadImage(safeName, file, 'images/');
+    // URLをhiddenフィールドにセット
+    document.getElementById('b-img-url').value=rawUrl;
+    // プレビュー表示
+    document.getElementById('blog-img-preview-img').src=rawUrl;
+    document.getElementById('blog-img-path').textContent='📁 images/'+safeName;
+    document.getElementById('blog-img-preview').style.display='block';
+    showToast('画像をアップロードしました ✓');
+  }catch(e){
+    showToast('画像アップロード失敗: '+e.message,'error');
+  }finally{
+    document.getElementById('blog-img-idle').style.display='block';
+    uploading.style.display='none';
+    document.getElementById('blog-img-drop').style.pointerEvents='';
+  }
+}
+
+function clearBlogImg(){
+  document.getElementById('b-img-url').value='';
+  document.getElementById('blog-img-preview').style.display='none';
+  document.getElementById('blog-img-preview-img').src='';
+  document.getElementById('blog-img-path').textContent='';
 }
 
 async function submitBlogPost(){
@@ -913,27 +899,28 @@ async function submitBlogPost(){
   const content=document.getElementById('b-content').value.trim();
   const msg=document.getElementById('blog-post-msg');
   if(!title||!author||!content){ msg.style.color='#a32d2d'; msg.textContent='タイトル・著者名・本文は必須です'; return; }
-  if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); return; }
+  if(!_ghToken()){ showToast('GitHub Tokenを設定してください','error'); return; }
 
   const btn=document.getElementById('blog-submit-btn');
   btn.disabled=true; btn.innerHTML='<div class="ring"></div><span>GitHubへ投稿中...</span>';
   msg.textContent='';
 
   try{
-    const remote=await ghLoadJson('data/blogs.json');
+    const remote=await apiGetBlogs().catch(()=>null);
     if(remote) blogDocs=remote;
 
     const tags=document.getElementById('b-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+    const imageUrl=document.getElementById('b-img-url').value.trim()||null;
     const post={
       id:'blog_'+Date.now(),
       title,author,content,
       category:document.getElementById('b-category').value,
       tags,
-      imageData:pendingBlogImg,
+      imageUrl,   // GitHub images/ のURL（Base64は使わない）
       date:document.getElementById('b-date').value||new Date().toISOString()
     };
     blogDocs.unshift(post);
-    await ghSaveJson('data/blogs.json', blogDocs, 'New blog post: '+title);
+    await apiSaveBlogs(blogDocs, 'New blog post: '+title);
     localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs));
     showToast('ブログをGitHubに投稿しました ✓');
     msg.style.color='var(--green)'; msg.textContent='投稿完了！一般ページのブログで確認できます。';
@@ -964,7 +951,7 @@ function renderBlogManage(q='',catFilter=''){
     const cat=BLOG_CAT[b.category]||BLOG_CAT.other;
     const dateStr=new Date(b.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
     return `<tr>
-      <td><div class="doc-thumb-cell" style="width:48px;height:36px;">${b.imageData?`<img src="${b.imageData}">`:'📝'}</div></td>
+      <td><div class="doc-thumb-cell" style="width:48px;height:36px;">${(b.imageUrl||b.imageData)?`<img src="${b.imageUrl||b.imageData}" style="width:100%;height:100%;object-fit:cover;">`:'📝'}</div></td>
       <td style="font-size:13px;font-weight:600;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(b.title)}</td>
       <td>${cat.cls?`<span class="nbadge ${cat.cls}">${cat.label}</span>`:cat.label}</td>
       <td style="font-size:12px;color:var(--text2);">${esc(b.author)}</td>
@@ -978,11 +965,26 @@ async function deleteBlog(id){
   if(!confirm('この投稿を削除しますか？（GitHubからも削除されます）')) return;
   blogDocs=blogDocs.filter(b=>b.id!==id);
   try{
-    await ghSaveJson('data/blogs.json', blogDocs, 'Delete blog post: '+id);
+    await apiSaveBlogs(blogDocs, 'Delete blog post: '+id);
     localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs));
     showToast('削除しました ✓');
   }catch(e){ showToast('削除エラー: '+e.message,'error'); }
   renderBlogManage(); updateSbCount();
+}
+
+async function deleteAllBlogs(){
+  if(!confirm('ブログ投稿を全件削除しますか？\n\nこの操作は取り消せません。\nGitHubのblogs.jsonも空になります。')) return;
+  if(!confirm('本当によろしいですか？\n全 '+blogDocs.length+' 件が削除されます。')) return;
+  try{
+    blogDocs=[];
+    await apiSaveBlogs([], 'Delete all blog posts');
+    localStorage.setItem(BLOG_KEY,'[]');
+    showToast('全件削除しました ✓');
+    renderBlogManage();
+    updateSbCount();
+  }catch(e){
+    showToast('削除エラー: '+e.message,'error');
+  }
 }
 
 // ========== UTILS ==========
@@ -1006,12 +1008,12 @@ async function repairDocsJson(){
     if(Array.isArray(existing)){
       // 壊れていないがpdfB64が含まれていれば除去
       const cleaned=existing.map(d=>{const {pdfB64,...rest}=d;return rest;});
-      await ghSaveJson('data/docs.json', cleaned, 'Repair: remove pdfB64 from docs.json');
+      await apiSaveDocs(cleaned, 'Repair: remove pdfB64 from docs.json');
       msg.style.color='var(--green)'; msg.textContent=`✅ 修復完了（${cleaned.length}件、pdfB64を除去してURL方式に変換）`;
       docs=cleaned; localStorage.setItem(STORE_KEY,JSON.stringify(docs)); updateSbCount();
     } else {
       // nullまたは壊れている→空配列で初期化
-      await ghSaveJson('data/docs.json', [], 'Repair: initialize docs.json');
+      await apiSaveDocs([], 'Repair: initialize docs.json');
       docs=[]; localStorage.setItem(STORE_KEY,'[]');
       msg.style.color='var(--green)'; msg.textContent='✅ docs.json を空で初期化しました。PDFを再アップロードしてください。';
       updateSbCount();
@@ -1025,10 +1027,10 @@ async function repairBlogsJson(){
   try{
     const existing=await ghLoadJson('data/blogs.json');
     if(Array.isArray(existing)){
-      await ghSaveJson('data/blogs.json', existing, 'Repair: verify blogs.json');
+      await apiSaveBlogs(existing, 'Repair: verify blogs.json');
       msg.style.color='var(--green)'; msg.textContent=`✅ blogs.json は正常です（${existing.length}件）`;
     } else {
-      await ghSaveJson('data/blogs.json', [], 'Repair: initialize blogs.json');
+      await apiSaveBlogs([], 'Repair: initialize blogs.json');
       msg.style.color='var(--green)'; msg.textContent='✅ blogs.json を空で初期化しました。';
     }
   }catch(e){ msg.style.color='#a32d2d'; msg.textContent='❌ エラー: '+e.message; }
@@ -1040,7 +1042,8 @@ async function checkGhFiles(){
   const results=[];
   for(const path of ['data/docs.json','data/blogs.json']){
     try{
-      const d=await ghFetch(path);
+      const res2=await fetch('https://api.github.com/repos/'+GITHUB.owner+'/'+GITHUB.repo+'/contents/'+path,{headers:{Authorization:'token '+_ghToken()}});
+      const d=await res2.json();
       const size=Math.round((d.size||0)/1024);
       results.push(`✅ ${path}（${size}KB）`);
     }catch(e){ results.push(`❌ ${path}：見つかりません`); }
@@ -1057,14 +1060,14 @@ async function initAdmin(){
   const rb=localStorage.getItem(BLOG_KEY); blogDocs=rb?JSON.parse(rb):[];
   updateSbCount();
   // Tokenがあれば接続確認
-  if(ghToken()){
+  if(_ghToken()){
     const res=await ghCheckToken();
     updateGhStatusBadge(res);
     if(res.ok){
       // GitHubから最新を読み込む
-      const remote=await ghLoadJson('data/docs.json');
+      const remote=await apiGetDocs().catch(()=>null);
       if(remote){ docs=remote; localStorage.setItem(STORE_KEY,JSON.stringify(docs)); }
-      const remoteB=await ghLoadJson('data/blogs.json');
+      const remoteB=await apiGetBlogs().catch(()=>null);
       if(remoteB){ blogDocs=remoteB; localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs)); }
       updateSbCount();
     }
