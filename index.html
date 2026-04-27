@@ -654,8 +654,7 @@ async function openPdfModal(id){
 function closePdfModal(){document.getElementById('pdf-modal').classList.remove('open');}
 
 
-// ===== WEATHER (Open-Meteo + 管理者設定の都市名) =====
-const WEATHER_CITY_KEY='portal_weather_city'; // 例: "Ushiku" "Tokyo" "大阪" "300-1200"
+// ===== WEATHER (つくば市固定 / Open-Meteo APIキー不要) =====
 const WMO_ICONS={
   0:'☀️',1:'🌤',2:'⛅',3:'☁️',
   45:'🌫',48:'🌫',
@@ -665,42 +664,29 @@ const WMO_ICONS={
   80:'🌦',81:'🌧',82:'🌧',
   95:'⛈',96:'⛈',99:'⛈'
 };
-
-function getWeatherCity(){ return localStorage.getItem(WEATHER_CITY_KEY)||''; }
+// つくば市の緯度経度（固定）
+const WEATHER_LAT=36.0837;
+const WEATHER_LON=140.0776;
+const WEATHER_CITY='つくば市';
 
 async function loadWeather(){
   const el=document.getElementById('weather-block');
-  const cityQuery=getWeatherCity();
-
-  if(!cityQuery){
-    el.innerHTML='<span style="font-size:10px;opacity:.55;color:white;">管理者ページで地域を設定してください</span>';
-    return;
-  }
-
   try{
-    // Step1: Open-Meteo Geocoding API で都市名→緯度経度
-    const geoRes=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=1&language=ja`);
-    const geoData=await geoRes.json();
-    if(!geoData.results||!geoData.results.length) throw new Error('都市が見つかりません: '+cityQuery);
-    const {latitude:lat, longitude:lon, name:cityName}=geoData.results[0];
-
-    // Step2: 天気取得（無料・APIキー不要）
-    const wxRes=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo`);
-    const wx=await wxRes.json();
+    const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo`);
+    const wx=await res.json();
     const cur=wx.current;
     const icon=WMO_ICONS[cur.weathercode]||'🌡';
     const temp=Math.round(cur.temperature_2m);
     const feel=Math.round(cur.apparent_temperature);
-
     el.innerHTML=`<div class="weather-chip">
       <span class="weather-icon">${icon}</span>
       <span class="weather-temp">${temp}°C</span>
       <span class="weather-desc">体感${feel}°</span>
-      <span class="weather-loc">${cityName}</span>
+      <span class="weather-loc">${WEATHER_CITY}</span>
     </div>`;
   }catch(e){
-    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗（都市名を確認）</span>`;
-    console.warn('Weather error:',e.message);
+    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗</span>`;
+    console.warn('Weather error:',e);
   }
 }
 
