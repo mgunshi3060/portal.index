@@ -197,14 +197,6 @@ button{font-family:inherit;}
 
 /* Google Calendar設定モーダル */
 .cal-modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(440px,96vw);padding:20px;}
-.evt-add-form{background:#f8f8f6;border-radius:var(--radius);padding:12px;margin-bottom:10px;border:0.5px solid var(--border);}
-.evt-add-form input,.evt-add-form select{width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;background:#fff;}
-.evt-add-form input:focus,.evt-add-form select:focus{border-color:var(--green);}
-.evt-add-row{display:flex;gap:8px;}
-.evt-add-row input{margin-bottom:0;}
-.evt-add-btn{height:36px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;padding:0 16px;margin-top:2px;}
-.evt-del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s;flex-shrink:0;}
-.evt-del-btn:hover{color:var(--red);}
 .cal-input{width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:inherit;margin-bottom:8px;transition:border-color .15s;}
 .cal-input:focus{border-color:var(--green);}
 .cal-save-btn{height:38px;background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;}
@@ -219,7 +211,8 @@ button{font-family:inherit;}
   <button class="nav-tab active" onclick="showPage('home',this,0)">ホーム</button>
   <button class="nav-tab" onclick="showPage('notice',this,1)">お知らせ</button>
   <a class="nav-tab" href="blog.html">社内ブログ</a>
-
+  <button class="nav-tab" onclick="showPage('security',this,3)">セキュリティ</button>
+  <button class="nav-tab" onclick="showPage('files',this,4)">ファイル検索</button>
   <div class="nav-right">
     <a class="admin-link" href="admin.html">⚙ 管理者</a>
     <div class="nav-avatar" id="nav-avatar" onclick="openNamePrompt()">?</div>
@@ -238,7 +231,12 @@ button{font-family:inherit;}
     <a class="bn-tab" href="blog.html">
       <div class="bn-tab-icon">✏️</div><div class="bn-tab-label">ブログ</div>
     </a>
-
+    <button class="bn-tab" id="bnt-security" onclick="showPage('security',null,3)">
+      <div class="bn-tab-icon">🔒</div><div class="bn-tab-label">セキュリティ</div>
+    </button>
+    <button class="bn-tab" id="bnt-files" onclick="showPage('files',null,4)">
+      <div class="bn-tab-icon">🗂</div><div class="bn-tab-label">ファイル</div>
+    </button>
   </div>
 </div>
 
@@ -255,6 +253,27 @@ button{font-family:inherit;}
   </div>
 </div>
 
+<!-- GOOGLE CALENDAR SETTINGS MODAL -->
+<div id="cal-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:16px;">
+  <div class="cal-modal-box">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">📅 Googleカレンダー設定</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
+      Googleカレンダーの「<b>カレンダーID</b>」と「<b>APIキー</b>」を入力してください。<br>
+      <span style="color:var(--text3);">※ カレンダーを「一般公開」に設定する必要があります</span>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">カレンダーID</div>
+    <input class="cal-input" type="text" id="cal-id-input" placeholder="xxx@group.calendar.google.com または メールアドレス">
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Google API キー</div>
+    <input class="cal-input" type="text" id="cal-key-input" placeholder="AIzaSy...">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6;">
+      APIキー取得：Google Cloud Console → APIとサービス → 認証情報 → APIキーを作成<br>
+      有効にするAPI：Google Calendar API
+    </div>
+    <button class="cal-save-btn" onclick="saveCalSettings()">保存して反映</button>
+    <button onclick="closeCalModal()" style="width:100%;height:38px;margin-top:8px;background:none;border:0.5px solid var(--border);border-radius:var(--radius);font-size:13px;cursor:pointer;">キャンセル</button>
+  </div>
+</div>
+
 <!-- ===== HOME ===== -->
 <div class="page active" id="page-home">
 
@@ -263,7 +282,7 @@ button{font-family:inherit;}
     <div class="hero-top">
       <div class="hero-greeting">
         <h1 id="greeting-text">おはようございます</h1>
-        <p id="daily-quote" style="font-size:11px;opacity:.85;line-height:1.5;"></p>
+        <p id="notice-sub-text">ようこそ！お名前を設定してください</p>
       </div>
       <div class="hero-date-block">
         <div class="hero-date" id="today-date"></div>
@@ -309,6 +328,7 @@ button{font-family:inherit;}
       <!-- UPCOMING EVENTS -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0">📅 直近のイベント</div>
+        <button class="cal-settings-btn" onclick="openCalModal()">⚙ 設定</button>
       </div>
       <div class="event-widget" id="event-widget-main">
         <div class="event-empty">カレンダーを設定すると<br>イベントが表示されます</div>
@@ -319,7 +339,8 @@ button{font-family:inherit;}
       <div class="ql-grid">
         <div class="ql-item" onclick="showPage('notice',null,1)"><div class="ql-icon" style="background:var(--green-l)">📋</div><div><div class="ql-label">お知らせ</div><div class="ql-sub">PDF・連絡事項</div></div></div>
         <div class="ql-item" onclick="location.href='blog.html'"><div class="ql-icon" style="background:var(--blue-l)">✏️</div><div><div class="ql-label">ブログ</div><div class="ql-sub">社内投稿</div></div></div>
-        <div class="ql-item" href="admin.html" onclick="location.href='admin.html'"><div class="ql-icon" style="background:var(--amber-l)">⚙️</div><div><div class="ql-label">管理者ページ</div><div class="ql-sub">投稿・設定</div></div></div>
+        <div class="ql-item" onclick="showPage('security',null,3)"><div class="ql-icon" style="background:var(--red-l)">🔒</div><div><div class="ql-label">セキュリティ</div><div class="ql-sub">情報・対策</div></div></div>
+        <div class="ql-item" onclick="showPage('files',null,4)"><div class="ql-icon" style="background:var(--amber-l)">🗂️</div><div><div class="ql-label">ファイル検索</div><div class="ql-sub">社内共有</div></div></div>
       </div>
     </div>
   </div>
@@ -331,15 +352,9 @@ button{font-family:inherit;}
     <div style="font-size:17px;font-weight:600;">お知らせ</div>
     <span style="font-size:11px;color:var(--text3)">日付の新しい順</span>
   </div>
-  <!-- 検索バー -->
-  <div style="position:relative;margin-bottom:10px;">
-    <input type="text" id="notice-search" placeholder="🔍 PDFファイル名で検索..." oninput="renderNotice()"
-      style="width:100%;height:40px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 14px 0 14px;font-size:13px;outline:none;background:var(--surface);font-family:inherit;transition:border-color .15s;"
-      onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''">
-  </div>
-  <!-- フィルター -->
   <div class="filter-row">
     <button class="filter-btn active" onclick="filterNotice('all',this)">すべて</button>
+    <button class="filter-btn" onclick="filterNotice('security',this)">🔒 セキュリティ</button>
     <button class="filter-btn" onclick="filterNotice('rule',this)">📋 規約・規程</button>
     <button class="filter-btn" onclick="filterNotice('notice',this)">📢 連絡事項</button>
     <button class="filter-btn" onclick="filterNotice('other',this)">その他</button>
@@ -347,6 +362,17 @@ button{font-family:inherit;}
   <div id="notice-list"><div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">お知らせがありません</div></div>
 </div>
 
+<!-- ===== SECURITY ===== -->
+<div class="page" id="page-security">
+  <div style="font-size:17px;font-weight:600;margin-bottom:16px;">セキュリティ情報</div>
+  <div style="color:var(--text2);text-align:center;padding:60px 0;">(準備中)</div>
+</div>
+
+<!-- ===== FILES ===== -->
+<div class="page" id="page-files">
+  <div style="font-size:17px;font-weight:600;margin-bottom:16px;">ファイル検索</div>
+  <div style="color:var(--text2);text-align:center;padding:60px 0;">(準備中)</div>
+</div>
 
 <!-- PDF MODAL -->
 <div class="modal-bg" id="pdf-modal" onclick="if(event.target===this)closePdfModal()">
@@ -359,7 +385,6 @@ button{font-family:inherit;}
   </div>
 </div>
 
-<script src="api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -381,76 +406,144 @@ const CAT_BLOG={
 const STORE_KEY='portal_docs';
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
-// ===== LOCAL EVENTS (localStorage管理・API不要・安定動作) =====
-const EVENTS_KEY='portal_local_events';
+const CAL_ID_KEY='portal_cal_id';
+const CAL_KEY_KEY='portal_cal_key';
+const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
 
-function getEvents(){
-  try{ return JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }catch(_){ return []; }
+let docs=[], blogs=[];
+
+// ===== NAVIGATION =====
+const PAGE_IDS=['home','notice','blog','security','files'];
+const BNT_IDS=['bnt-home','bnt-notice',null,'bnt-security','bnt-files'];
+
+function showPage(id,btn,idx){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bn-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(idx!==undefined && BNT_IDS[idx]) document.getElementById(BNT_IDS[idx]).classList.add('active');
+  if(id==='notice') renderNotice();
+  window.scrollTo(0,0);
 }
-function saveEvents(ev){ localStorage.setItem(EVENTS_KEY,JSON.stringify(ev)); }
 
-// イベント追加・管理は admin.html 側で行う（index.html には不要な関数を削除済み）
+// ===== USER NAME =====
+function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
+function openNamePrompt(){
+  document.getElementById('name-prompt-input').value=getUsername();
+  document.getElementById('name-prompt-bg').style.display='flex';
+  setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
+}
+function saveUsername(){
+  const v=document.getElementById('name-prompt-input').value.trim();
+  if(!v) return;
+  localStorage.setItem(NAME_KEY,v);
+  document.getElementById('name-prompt-bg').style.display='none';
+  updateGreeting(); updateAvatar();
+}
+function updateGreeting(){
+  const name=getUsername();
+  const h=new Date().getHours();
+  const greet=h<11?'おはようございます':h<18?'こんにちは':'こんばんは';
+  document.getElementById('greeting-text').textContent=name?greet+'、'+name+'さん':greet;
+  document.getElementById('notice-sub-text').textContent=name?'今日もよろしくお願いします':'ようこそ！お名前を設定してください';
+}
+function updateAvatar(){
+  const name=getUsername();
+  document.getElementById('nav-avatar').textContent=name?name.slice(0,2):'?';
+}
 
-function renderEventWidget(){
-  const heroEl=document.getElementById('hero-event-list');
-  const widget=document.getElementById('event-widget-main');
-  const today=new Date().toISOString().slice(0,10);
-  const events=getEvents().filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+// ===== DATA =====
+async function loadDocs(){
+  try{
+    const res=await fetch(GH_RAW+'data/docs.json?_='+Date.now());
+    if(res.ok){ docs=await res.json(); localStorage.setItem(STORE_KEY,JSON.stringify(docs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(STORE_KEY); if(r) docs=JSON.parse(r); }catch(e){ docs=[]; }
+}
+async function loadBlogs(){
+  try{
+    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
+    if(res.ok){ blogs=await res.json(); localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }catch(e){ blogs=[]; }
+}
 
-  // stat（stat-eventはホームHTMLに存在しないためnullチェック）
-  const _se=document.getElementById('stat-event'); if(_se) _se.textContent=events.length;
+// ===== DATE =====
+function formatDateShort(d){ return (d.getMonth()+1)+'/'+(d.getDate()); }
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
 
-  // ヒーロー内チップ（直近3件）
-  if(heroEl){
-    if(!events.length){
-      heroEl.innerHTML='<span class="hero-loading" style="opacity:.7;">直近のイベントはありません</span>';
-    }else{
-      heroEl.innerHTML=events.slice(0,3).map(e=>{
-        const isToday=e.date===today;
-        const [y,m,d]=e.date.split('-');
-        const label=isToday?'今日':(m+'/'+d);
-        return `<div class="hero-event-chip">
-          <span class="hero-event-chip-date">${label}</span>
-          <span>${esc(e.name)}</span>
-          ${e.time?`<span class="hero-event-chip-date">${e.time}</span>`:''}
-        </div>`;
-      }).join('');
-    }
-  }
+// ===== GOOGLE CALENDAR =====
+const CAL_ID_DEMO=''; // 設定前はデモデータを使用
 
-  // サイドウィジェット（直近8件）
-  if(!widget) return;
-  if(!events.length){
-    widget.innerHTML='<div class="event-empty" style="padding:16px 0;text-align:center;"><div style="font-size:11px;color:var(--text3);">登録されているイベントはありません</div></div>';
+function getCalId(){ return localStorage.getItem(CAL_ID_KEY)||''; }
+function getCalKey(){ return localStorage.getItem(CAL_KEY_KEY)||''; }
+
+function openCalModal(){
+  document.getElementById('cal-id-input').value=getCalId();
+  document.getElementById('cal-key-input').value=getCalKey();
+  document.getElementById('cal-modal-bg').style.display='flex';
+}
+function closeCalModal(){ document.getElementById('cal-modal-bg').style.display='none'; }
+function saveCalSettings(){
+  const id=document.getElementById('cal-id-input').value.trim();
+  const key=document.getElementById('cal-key-input').value.trim();
+  localStorage.setItem(CAL_ID_KEY,id);
+  localStorage.setItem(CAL_KEY_KEY,key);
+  closeCalModal();
+  loadAndRenderCalendar();
+}
+
+async function loadAndRenderCalendar(){
+  const calId=getCalId();
+  const apiKey=getCalKey();
+
+  if(!calId||!apiKey){
+    // デモデータを表示
+    renderCalendarEvents(getDemoEvents());
     return;
   }
-  widget.innerHTML=events.slice(0,8).map(e=>{
-    const isToday=e.date===today;
-    const [,m,d]=e.date.split('-');
-    const weekday=['日','月','火','水','木','金','土'][new Date(e.date+'T00:00:00').getDay()];
-    const wcolor=['color:#e24b4a','','','','','','color:#185fa5'][new Date(e.date+'T00:00:00').getDay()];
-    return `<div class="event-item${isToday?' event-today':''}">
-      <div class="event-date-badge${isToday?' event-today':''}">
-        <div class="event-date-m">${m}月</div>
-        <div class="event-date-d">${d}</div>
-        <div style="font-size:8px;font-weight:600;${isToday?'color:white;':wcolor}">${weekday}</div>
-      </div>
-      <div class="event-info">
-        <div class="event-name">${esc(e.name)}${isToday?' <span style="font-size:9px;background:var(--amber);color:white;padding:1px 5px;border-radius:3px;font-weight:600;vertical-align:middle;">今日</span>':''}</div>
-        <div class="event-time">${e.time||'終日'}</div>
-      </div>
-    </div>`;
-  }).join('');
+
+  const now=new Date();
+  const timeMin=now.toISOString();
+  const timeMax=new Date(now.getTime()+30*86400000).toISOString(); // 30日後まで
+  const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=10`;
+
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('カレンダー取得失敗: '+res.status);
+    const data=await res.json();
+    const events=(data.items||[]).map(e=>({
+      title:e.summary||'(タイトルなし)',
+      start:new Date(e.start.dateTime||e.start.date),
+      end:e.end?new Date(e.end.dateTime||e.end.date):null,
+      allDay:!!e.start.date
+    }));
+    renderCalendarEvents(events);
+  }catch(e){
+    console.warn('Calendar error:',e);
+    renderCalendarEvents(getDemoEvents());
+    document.getElementById('hero-event-list').innerHTML='<span class="hero-loading" style="color:rgba(255,255,255,.5);">⚠ カレンダー設定を確認してください</span>';
+  }
+}
+
+function getDemoEvents(){
+  // カレンダー未設定時のデモ
+  const t=new Date(); t.setHours(0,0,0,0);
+  return [
+    {title:'朝会',start:new Date(t.getTime()+0*86400000),allDay:false},
+    {title:'出勤日',start:new Date(t.getTime()+4*86400000),allDay:true},
+    {title:'臨時出社',start:new Date(t.getTime()+6*86400000),allDay:true},
+  ];
 }
 
 function renderCalendarEvents(events){
-  const todayD=today(); // setHours(0,0,0,0)済みのDate
+  const todayD=today();
 
   // ===== ヒーロー内の直近3件 =====
   const heroEl=document.getElementById('hero-event-list');
-  // 終日イベントもローカル0時で比較するので >= で正しく動く
   const upcoming=events.filter(e=>e.start>=todayD).slice(0,4);
-  const _se2=document.getElementById('stat-event'); if(_se2) _se2.textContent=upcoming.length;
+  document.getElementById('stat-event').textContent=upcoming.length;
 
   if(!upcoming.length){
     heroEl.innerHTML='<span class="hero-loading">直近30日のイベントはありません</span>';
@@ -524,7 +617,7 @@ function renderHomeBlog(){
     const emoji={tech:'💡',report:'🏭',idea:'💭',event:'🎉',other:'📝'}[b.category]||'📝';
     return `<a href="blog.html" style="text-decoration:none;">
       <div class="blog-mini-card">
-        <div class="blog-mini-cover">${(b.imageUrl||b.imageData)?`<img src="${b.imageUrl||b.imageData}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:`<span style="font-size:26px;opacity:.35;">${emoji}</span>`}</div>
+        <div class="blog-mini-cover">${b.imageData?`<img src="${b.imageData}">`:`<span style="font-size:26px;opacity:.35;">${emoji}</span>`}</div>
         <div class="blog-mini-body">
           <span class="blog-mini-cat" style="background:${cat.bg};color:${cat.color}">${cat.label}</span>
           <div class="blog-mini-title">${b.title}</div>
@@ -539,17 +632,15 @@ function renderHomeBlog(){
 let currentFilter='all';
 function renderNotice(){
   const list=document.getElementById('notice-list');
-  const q=(document.getElementById('notice-search')||{value:''}).value.trim().toLowerCase();
   const sorted=[...docs].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  let filtered=currentFilter==='all'?sorted:sorted.filter(d=>d.tag===currentFilter);
-  if(q) filtered=filtered.filter(d=>d.name.toLowerCase().includes(q));
+  const filtered=currentFilter==='all'?sorted:sorted.filter(d=>d.tag===currentFilter);
   if(!filtered.length){list.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:40px 0;">該当するお知らせがありません</div>';return;}
   list.innerHTML=filtered.map(d=>{
     const t=TAG[d.tag]||TAG.other;
     const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
     const isNew=(Date.now()-new Date(d.date).getTime())<86400000*3;
     return `<div class="notice-card" onclick="openPdfModal('${d.id}')">
-      <div class="notice-thumb">${(d.thumbUrl||d.thumbData)?`<img src="${d.thumbUrl||d.thumbData}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'📄'}</div>
+      <div class="notice-thumb">${d.thumbData?`<img src="${d.thumbData}">`:'📄'}</div>
       <div class="notice-body">
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
           <span class="nbadge ${t.cls}">${t.label}</span>
@@ -611,7 +702,8 @@ async function openPdfModal(id){
 function closePdfModal(){document.getElementById('pdf-modal').classList.remove('open');}
 
 
-// ===== WEATHER (つくば市固定 / Open-Meteo APIキー不要) =====
+// ===== WEATHER (Open-Meteo + 管理者設定の都市名) =====
+const WEATHER_CITY_KEY='portal_weather_city'; // 例: "Ushiku" "Tokyo" "大阪" "300-1200"
 const WMO_ICONS={
   0:'☀️',1:'🌤',2:'⛅',3:'☁️',
   45:'🌫',48:'🌫',
@@ -621,74 +713,43 @@ const WMO_ICONS={
   80:'🌦',81:'🌧',82:'🌧',
   95:'⛈',96:'⛈',99:'⛈'
 };
-// つくば市の緯度経度（固定）
-const WEATHER_LAT=36.0837;
-const WEATHER_LON=140.0776;
-const WEATHER_CITY='つくば市';
+
+function getWeatherCity(){ return localStorage.getItem(WEATHER_CITY_KEY)||''; }
 
 async function loadWeather(){
   const el=document.getElementById('weather-block');
+  const cityQuery=getWeatherCity();
+
+  if(!cityQuery){
+    el.innerHTML='<span style="font-size:10px;opacity:.55;color:white;">管理者ページで地域を設定してください</span>';
+    return;
+  }
+
   try{
-    const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo`);
-    const wx=await res.json();
+    // Step1: Open-Meteo Geocoding API で都市名→緯度経度
+    const geoRes=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=1&language=ja`);
+    const geoData=await geoRes.json();
+    if(!geoData.results||!geoData.results.length) throw new Error('都市が見つかりません: '+cityQuery);
+    const {latitude:lat, longitude:lon, name:cityName}=geoData.results[0];
+
+    // Step2: 天気取得（無料・APIキー不要）
+    const wxRes=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo`);
+    const wx=await wxRes.json();
     const cur=wx.current;
     const icon=WMO_ICONS[cur.weathercode]||'🌡';
     const temp=Math.round(cur.temperature_2m);
     const feel=Math.round(cur.apparent_temperature);
+
     el.innerHTML=`<div class="weather-chip">
       <span class="weather-icon">${icon}</span>
       <span class="weather-temp">${temp}°C</span>
       <span class="weather-desc">体感${feel}°</span>
-      <span class="weather-loc">${WEATHER_CITY}</span>
+      <span class="weather-loc">${cityName}</span>
     </div>`;
   }catch(e){
-    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗</span>`;
-    console.warn('Weather error:',e);
+    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗（都市名を確認）</span>`;
+    console.warn('Weather error:',e.message);
   }
-}
-
-// ===== DAILY QUOTE =====
-const QUOTES=[
-  '「継続は力なり」— 努力を積み重ねることが、大きな力になる。',
-  '「失敗は成功のもと」— 失敗を恐れず、そこから学ぼう。',
-  '「千里の道も一歩から」— 大きな目標も、小さな一歩から始まる。',
-  '「急がば回れ」— 焦らず着実に進むことが近道になる。',
-  '「七転び八起き」— 何度転んでも、また立ち上がれば良い。',
-  '「備えあれば憂いなし」— 準備をしておけば、いざという時に困らない。',
-  '「石の上にも三年」— 辛抱強く続けることで、成果が生まれる。',
-  '「聞くは一時の恥、聞かぬは一生の恥」— 分からないことは素直に聞こう。',
-  '「良薬は口に苦し」— 耳の痛いことほど、自分の成長になる。',
-  '「一期一会」— 今この出会いと瞬間を大切に。',
-  '「案ずるより産むが易し」— やってみると、案外うまくいくものだ。',
-  '「塵も積もれば山となる」— 小さな積み重ねが大きな成果につながる。',
-  '「初心忘るべからず」— 始めた頃の気持ちと謙虚さを忘れずに。',
-  '「時は金なり」— 時間はお金と同じくらい大切な資源だ。',
-  '「情けは人の為ならず」— 人への親切は、巡り巡って自分に返ってくる。',
-  '「百聞は一見に如かず」— 聞くより実際に見たほうが確かな理解が得られる。',
-  '「好きこそ物の上手なれ」— 好きなことには自然と熱中でき、上達も早い。',
-  '「三人寄れば文殊の知恵」— チームで考えれば、より良いアイデアが生まれる。',
-  '「転んでもただでは起きない」— 失敗からも必ず何かを得て次に活かそう。',
-  '「明日は明日の風が吹く」— 今日できることに集中し、明日を信じよう。',
-  '「知は力なり」— 学び続けることが、可能性を広げる。',
-  '「木を見て森を見ず」— 細部だけでなく、全体像を捉えることも大切だ。',
-  '「出る杭は打たれる」— 目立つことを恐れず、それでも誠実に行動しよう。',
-  '「笑う門には福来たる」— 明るい職場に、良い縁と結果が集まってくる。',
-  '「ローマは一日にして成らず」— 大きな成果は、長い積み重ねの上にある。',
-  '「言葉は心の鏡」— 日頃の言葉遣いに、人柄がにじみ出る。',
-  '「為せば成る」— やろうと決意すれば、必ず道は開ける。',
-  '「光陰矢の如し」— 時間はあっという間に過ぎる。今日を大切に。',
-  '「敵を知り己を知れば百戦危うからず」— 状況を正確に把握することが成功の鍵。',
-  '「雨降って地固まる」— 困難を乗り越えた後こそ、強い基盤ができる。',
-];
-
-function renderDailyQuote(){
-  const el=document.getElementById('daily-quote');
-  if(!el) return;
-  // 日付をシードにして毎日同じ格言が出る（翌日になると変わる）
-  const today=new Date();
-  const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
-  const idx=seed%QUOTES.length;
-  el.textContent=QUOTES[idx];
 }
 
 // ===== INIT =====
@@ -699,7 +760,6 @@ async function refreshAll(){
   await loadBlogs();
   updateGreeting();
   updateAvatar();
-  renderDailyQuote();
   renderHomeNews();
   renderHomeBlog();
   updateAlert();
@@ -707,7 +767,7 @@ async function refreshAll(){
 
 refreshAll();
 loadWeather();
-renderEventWidget();
+loadAndRenderCalendar();
 
 if(!getUsername()){
   setTimeout(()=>{
@@ -716,17 +776,8 @@ if(!getUsername()){
   },400);
 }
 
-// ===== CROSS-TAB / CROSS-PAGE SYNC =====
-// storage イベントは同一ウィンドウでは発火しないため BroadcastChannel を使用
-const _bc = new BroadcastChannel('portal_sync');
-_bc.onmessage = e => {
-  if(e.data === 'docs' || e.data === 'blogs') refreshAll();
-  if(e.data === 'events') renderEventWidget();
-};
-// 別ウィンドウ対応（storage イベントは別ウィンドウ間では動く）
-window.addEventListener('storage', e => {
-  if(e.key === STORE_KEY || e.key === BLOG_KEY) refreshAll();
-  if(e.key === EVENTS_KEY) renderEventWidget();
+window.addEventListener('storage',e=>{
+  if(e.key===STORE_KEY||e.key===BLOG_KEY) refreshAll();
 });
 </script>
 </body>
