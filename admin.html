@@ -775,15 +775,17 @@ function onFileSelect(e){ handleFiles([...e.target.files]); e.target.value=''; }
 
 async function handleFiles(files){
   for(const f of files){
-    const url=URL.createObjectURL(f);
-    const pdf=await pdfjsLib.getDocument(url).promise;
+    const objUrl=URL.createObjectURL(f);
+    const pdf=await pdfjsLib.getDocument(objUrl).promise;
     const page=await pdf.getPage(1);
-    const vp=page.getViewport({scale:0.7});
+    // サムネイル: scale=1.5 で鮮明に、JPEG品質0.75
+    const vp=page.getViewport({scale:1.5});
     const canvas=document.createElement('canvas');
     canvas.width=vp.width; canvas.height=vp.height;
     await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    const thumbData=canvas.toDataURL('image/jpeg',0.4);  // 圧縮率高め（JSON軽量化）
-    // PDF本体もBase64で読み込む
+    const thumbData=canvas.toDataURL('image/jpeg',0.75);
+    URL.revokeObjectURL(objUrl);
+    // PDF本体もBase64で読み込む（GitHub Pagesへのアップロード用）
     const pdfB64=await fileToBase64(f);
     pendingFiles.push({name:f.name,pdfB64,numPages:pdf.numPages,thumbData});
   }
@@ -855,8 +857,9 @@ async function doUpload(){
       await ghUploadPdf(f.name, f.pdfB64);
       document.getElementById('progbar_'+i).style.width='70%';
 
-      // ② JSONにはパスとサムネだけ記録（PDF本体は含めない）
-      const pdfUrl='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/pdfs/'+encodeURIComponent(f.name);
+      // ② JSONにはGitHub Pages URLとサムネだけ記録（PDF本体は含めない）
+      // raw.githubusercontent.com はブラウザで直接開けないのでGitHub Pages URLを使用
+      const pdfUrl='https://'+GH_OWNER+'.github.io/'+GH_REPO+'/pdfs/'+encodeURIComponent(f.name);
       const id='doc_'+Date.now()+'_'+i;
       docs.unshift({id, name:f.name, tag, date, urgent, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
       document.getElementById('progbar_'+i).style.width='90%';

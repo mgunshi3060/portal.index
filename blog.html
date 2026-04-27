@@ -153,11 +153,65 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 .ring{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ===== MOBILE RESPONSIVE ===== */
 @media(max-width:680px){
+  /* ナビ */
+  .nav{padding:0 10px;gap:4px;}
+  .nav-tab:not(.active){display:none;}
+  .nav-name{font-size:12px;}
+  .admin-link{display:none;}
+
+  /* レイアウト */
+  .container{padding:12px 10px;padding-bottom:72px;}
   .two-col{grid-template-columns:1fr;}
   .sidebar-col{display:none;}
-  .blog-card-cover{width:90px;}
+
+  /* ヘッダー */
+  .page-header{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px;}
+  .page-title{font-size:17px;}
+  .page-header > a{display:none;}
+
+  /* フィルター: 横スクロール */
+  .filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;gap:6px;}
+  .filter-row::-webkit-scrollbar{display:none;}
+  .filter-btn{white-space:nowrap;flex-shrink:0;}
+  .search-input{display:none;}
+
+  /* カード */
+  .blog-card{flex-direction:column;}
+  .blog-card-cover{width:100%;height:160px;}
+  .blog-card-body{padding:10px 12px;}
+  .blog-card-title{font-size:14px;}
+
+  /* モーダル */
+  .modal-bg{padding:0;}
+  .modal-box{width:100%;height:100%;border-radius:0;margin:0;}
+  .detail-cover{max-height:200px;}
   .form-row-2{grid-template-columns:1fr;}
+}
+
+/* ボトムナビ (mobile) */
+.blog-bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:0.5px solid rgba(0,0,0,.1);
+  z-index:200;padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -1px 8px rgba(0,0,0,.06);
+}
+.blog-bottom-nav-inner{display:flex;align-items:center;justify-content:space-around;height:56px;}
+.bbn-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:#999;border:none;background:none;padding:6px 0;cursor:pointer;font-size:10px;font-weight:600;text-decoration:none;}
+.bbn-tab.active{color:var(--green);}
+.bbn-tab-icon{font-size:20px;line-height:1;}
+
+/* 検索をモバイルでも使えるように別表示 */
+.mobile-search{display:none;}
+
+@media(max-width:680px){
+  .blog-bottom-nav{display:block;}
+  body{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
+  .mobile-search{display:flex;margin-bottom:12px;}
+  .mobile-search input{width:100%;height:36px;border:0.5px solid rgba(0,0,0,.1);border-radius:20px;padding:0 14px;font-size:13px;outline:none;}
+  .mobile-search input:focus{border-color:var(--green);}
 }
 </style>
 </head>
@@ -174,17 +228,42 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
   <a class="nav-tab" href="index.html#files">ファイル検索</a>
   <div class="nav-right">
     <a class="admin-link" href="admin.html">⚙ 管理者</a>
-    <div class="nav-avatar" id="nav-avatar" title="名前を変更">?</div>
   </div>
 </nav>
 
 <!-- NAME PROMPT -->
+
+<!-- BOTTOM NAV (mobile) -->
+<div class="blog-bottom-nav">
+  <div class="blog-bottom-nav-inner">
+    <a class="bbn-tab" href="index.html">
+      <div class="bbn-tab-icon">🏠</div><div>ホーム</div>
+    </a>
+    <a class="bbn-tab" href="index.html">
+      <div class="bbn-tab-icon">📋</div><div>お知らせ</div>
+    </a>
+    <a class="bbn-tab active" href="blog.html">
+      <div class="bbn-tab-icon">✏️</div><div>ブログ</div>
+    </a>
+    <a class="bbn-tab" href="index.html">
+      <div class="bbn-tab-icon">🔒</div><div>セキュリティ</div>
+    </a>
+    <a class="bbn-tab" href="admin.html">
+      <div class="bbn-tab-icon">⚙️</div><div>管理者</div>
+    </a>
+  </div>
+</div>
 
 <!-- MAIN -->
 <div class="container">
   <div class="page-header">
     <div class="page-title">✏️ 社内ブログ</div>
 <a href="admin.html" style="font-size:11px;color:var(--text3);border:0.5px solid var(--border);padding:5px 12px;border-radius:20px;text-decoration:none;">⚙ 管理者ページ</a>
+  </div>
+
+  <!-- モバイル用検索 -->
+  <div class="mobile-search">
+    <input type="text" placeholder="🔍 キーワード検索..." oninput="setSearch(this.value)">
   </div>
 
   <div class="filter-row">
@@ -229,7 +308,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 
 <div class="toast" id="toast"></div>
 
-<script src="api.js"></script>
 <script>
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
@@ -252,23 +330,16 @@ let currentSearch='';
 let pendingTags=[];
 let pendingImgData=null;
 
-// ===== DATA LOAD (api.js に委譲) =====
-async function loadBlogs(){
-  blogs = await apiLoad('blogs', BLOG_KEY);
-}
+const GH_RAW='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
 
-// ===== NAME =====
-function updateAvatar(){
-  const n=getUsername();
-  const av=document.getElementById('nav-avatar');
-  av.textContent=n?n.slice(0,2):'?';
-  av.title=n?n+'（クリックで変更）':'名前を設定';
+// ===== DATA LOAD =====
+async function loadBlogs(){
+  try{
+    const res=await fetch(GH_RAW+'data/blogs.json?_='+Date.now());
+    if(res.ok){ blogs=await res.json(); localStorage.setItem(BLOG_KEY,JSON.stringify(blogs)); return; }
+  }catch(e){}
+  try{ const r=localStorage.getItem(BLOG_KEY); blogs=r?JSON.parse(r):[]; }catch(e){ blogs=[]; }
 }
-document.getElementById('nav-avatar').addEventListener('click',()=>{
-  document.getElementById('name-input').value=getUsername();
-  document.getElementById('name-prompt').classList.add('open');
-  setTimeout(()=>document.getElementById('name-input').focus(),100);
-});
 
 // ===== RENDER =====
 function getFiltered(){
@@ -459,9 +530,6 @@ async function init(){
   await loadBlogs();
   renderList();
   renderSidebar();
-  updateAvatar();
-  if(getUsername()) document.getElementById('f-author').value=getUsername();
-
 }
 init();
 
