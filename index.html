@@ -389,50 +389,7 @@ function getEvents(){
 }
 function saveEvents(ev){ localStorage.setItem(EVENTS_KEY,JSON.stringify(ev)); }
 
-function openEvtModal(){
-  // 今日の日付をデフォルトセット
-  document.getElementById('evt-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('evt-name').value='';
-  document.getElementById('evt-time').value='';
-  renderEvtModalList();
-  document.getElementById('evt-modal-bg').style.display='flex';
-}
-function closeEvtModal(){ document.getElementById('evt-modal-bg').style.display='none'; }
-
-function addEvent(){
-  const name=document.getElementById('evt-name').value.trim();
-  const date=document.getElementById('evt-date').value;
-  const time=document.getElementById('evt-time').value.trim();
-  if(!name||!date){ return; }
-  const events=getEvents();
-  events.push({id:'e'+Date.now(), name, date, time});
-  saveEvents(events);
-  document.getElementById('evt-name').value='';
-  document.getElementById('evt-time').value='';
-  renderEvtModalList();
-  renderEventWidget();
-}
-
-function deleteEvent(id){
-  saveEvents(getEvents().filter(e=>e.id!==id));
-  renderEvtModalList();
-  renderEventWidget();
-}
-
-function renderEvtModalList(){
-  const el=document.getElementById('evt-modal-list');
-  const today=new Date().toISOString().slice(0,10);
-  const list=getEvents().sort((a,b)=>a.date.localeCompare(b.date));
-  if(!list.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px;">登録されているイベントはありません</div>'; return; }
-  el.innerHTML=list.map(e=>{
-    const isPast=e.date<today;
-    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);opacity:${isPast?'.45':'1'}">
-      <div style="flex-shrink:0;font-size:12px;font-weight:600;color:var(--text2);min-width:60px;">${e.date.slice(5).replace('-','/')}</div>
-      <div style="flex:1;font-size:13px;font-weight:600;">${esc(e.name)}${e.time?` <span style="font-size:11px;color:var(--text2);">${esc(e.time)}</span>`:''}</div>
-      <button class="evt-del-btn" onclick="deleteEvent('${e.id}')">✕</button>
-    </div>`;
-  }).join('');
-}
+// イベント追加・管理は admin.html 側で行う（index.html には不要な関数を削除済み）
 
 function renderEventWidget(){
   const heroEl=document.getElementById('hero-event-list');
@@ -440,13 +397,13 @@ function renderEventWidget(){
   const today=new Date().toISOString().slice(0,10);
   const events=getEvents().filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
 
-  // stat
-  document.getElementById('stat-event').textContent=events.length;
+  // stat（stat-eventはホームHTMLに存在しないためnullチェック）
+  const _se=document.getElementById('stat-event'); if(_se) _se.textContent=events.length;
 
   // ヒーロー内チップ（直近3件）
   if(heroEl){
     if(!events.length){
-      heroEl.innerHTML='<span class="hero-loading" style="opacity:.7;">イベントなし — ＋追加・管理から登録</span>';
+      heroEl.innerHTML='<span class="hero-loading" style="opacity:.7;">直近のイベントはありません</span>';
     }else{
       heroEl.innerHTML=events.slice(0,3).map(e=>{
         const isToday=e.date===today;
@@ -493,7 +450,7 @@ function renderCalendarEvents(events){
   const heroEl=document.getElementById('hero-event-list');
   // 終日イベントもローカル0時で比較するので >= で正しく動く
   const upcoming=events.filter(e=>e.start>=todayD).slice(0,4);
-  document.getElementById('stat-event').textContent=upcoming.length;
+  const _se2=document.getElementById('stat-event'); if(_se2) _se2.textContent=upcoming.length;
 
   if(!upcoming.length){
     heroEl.innerHTML='<span class="hero-loading">直近30日のイベントはありません</span>';
@@ -759,8 +716,17 @@ if(!getUsername()){
   },400);
 }
 
-window.addEventListener('storage',e=>{
-  if(e.key===STORE_KEY||e.key===BLOG_KEY) refreshAll();
+// ===== CROSS-TAB / CROSS-PAGE SYNC =====
+// storage イベントは同一ウィンドウでは発火しないため BroadcastChannel を使用
+const _bc = new BroadcastChannel('portal_sync');
+_bc.onmessage = e => {
+  if(e.data === 'docs' || e.data === 'blogs') refreshAll();
+  if(e.data === 'events') renderEventWidget();
+};
+// 別ウィンドウ対応（storage イベントは別ウィンドウ間では動く）
+window.addEventListener('storage', e => {
+  if(e.key === STORE_KEY || e.key === BLOG_KEY) refreshAll();
+  if(e.key === EVENTS_KEY) renderEventWidget();
 });
 </script>
 </body>

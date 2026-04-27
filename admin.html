@@ -788,6 +788,7 @@ async function doUpload(){
     // ③ docs.jsonを更新（サムネのみ、軽量）
     await apiSaveDocs(docs, `Add ${pendingFiles.length} PDF(s): ${pendingFiles.map(f=>f.name).join(', ')}`);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
+    bcNotify('docs');
 
     pendingFiles.forEach((_,i)=>{ document.getElementById('progbar_'+i).style.width='100%'; });
     await sleep(300);
@@ -840,12 +841,14 @@ async function deleteDoc(id){
     docs=latest.filter(d=>d.id!==id);
     await apiSaveDocs(docs, 'Delete document: '+id);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
+    bcNotify('docs');
     showToast('削除しました ✓');
   }catch(e){
     docs=docs.filter(d=>d.id!==id);
     try{
       await apiSaveDocs(docs, 'Delete document: '+id);
       localStorage.setItem(STORE_KEY,JSON.stringify(docs));
+      bcNotify('docs');
       showToast('削除しました ✓');
     }catch(e2){ showToast('削除エラー: '+e2.message,'error'); }
   }
@@ -859,6 +862,7 @@ async function toggleUrgent(id){
   try{
     await apiSaveDocs(docs, (d.urgent?'Set urgent: ':'Unset urgent: ')+d.name);
     localStorage.setItem(STORE_KEY,JSON.stringify(docs));
+    bcNotify('docs');
     showToast(d.urgent?'重要フラグを設定しました':'重要フラグを解除しました');
   }catch(e){ showToast('エラー: '+e.message,'error'); }
   renderManage();
@@ -935,6 +939,7 @@ async function submitBlogPost(){
     blogDocs.unshift(post);
     await apiSaveBlogs(blogDocs, 'New blog post: '+title);
     localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs));
+    bcNotify('blogs');
     showToast('ブログをGitHubに投稿しました ✓');
     msg.style.color='var(--green)'; msg.textContent='投稿完了！一般ページのブログで確認できます。';
     clearBlogForm();
@@ -980,6 +985,7 @@ async function deleteBlog(id){
   try{
     await apiSaveBlogs(blogDocs, 'Delete blog post: '+id);
     localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs));
+    bcNotify('blogs');
     showToast('削除しました ✓');
   }catch(e){ showToast('削除エラー: '+e.message,'error'); }
   renderBlogManage(); updateSbCount();
@@ -1079,6 +1085,7 @@ function calAdminAddEvent(){
   const events=getEvents();
   events.push({id:'e'+Date.now(), name, date, time});
   saveEvents(events);
+  bcNotify('events');
   document.getElementById('cal-evt-name').value='';
   document.getElementById('cal-evt-time').value='';
   msg.style.color='var(--green)'; msg.textContent='✅ 追加しました';
@@ -1090,6 +1097,7 @@ function calAdminAddEvent(){
 function calAdminDeleteEvent(id){
   if(!confirm('このイベントを削除しますか？')) return;
   saveEvents(getEvents().filter(e=>e.id!==id));
+  bcNotify('events');
   renderCalManage();
   showToast('削除しました ✓');
 }
@@ -1099,6 +1107,7 @@ function calAdminDeleteAll(){
   if(!events.length){ showToast('削除するイベントがありません','error'); return; }
   if(!confirm('登録されているイベントを全件削除しますか？\n\nこの操作は取り消せません。')) return;
   saveEvents([]);
+  bcNotify('events');
   renderCalManage();
   showToast('全件削除しました ✓');
 }
@@ -1140,7 +1149,11 @@ function renderCalManage(){
   }).join('');
 }
 
-// ========== INIT ==========
+// ========== BROADCAST (同一ウィンドウ→indexへ通知) ==========
+const _adminBC = new BroadcastChannel('portal_sync');
+function bcNotify(type){ _adminBC.postMessage(type); }
+
+// ==========  INIT ==========
 async function initAdmin(){
   document.getElementById('meta-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('b-date').value=new Date().toISOString().slice(0,10);
