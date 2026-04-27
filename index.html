@@ -263,7 +263,7 @@ button{font-family:inherit;}
     <div class="hero-top">
       <div class="hero-greeting">
         <h1 id="greeting-text">おはようございます</h1>
-        <p id="notice-sub-text">ようこそ！お名前を設定してください</p>
+        <p id="daily-quote" style="font-size:11px;opacity:.85;line-height:1.5;"></p>
       </div>
       <div class="hero-date-block">
         <div class="hero-date" id="today-date"></div>
@@ -690,6 +690,50 @@ async function loadWeather(){
   }
 }
 
+// ===== DAILY QUOTE =====
+const QUOTES=[
+  '「継続は力なり」— 努力を積み重ねることが、大きな力になる。',
+  '「失敗は成功のもと」— 失敗を恐れず、そこから学ぼう。',
+  '「千里の道も一歩から」— 大きな目標も、小さな一歩から始まる。',
+  '「急がば回れ」— 焦らず着実に進むことが近道になる。',
+  '「七転び八起き」— 何度転んでも、また立ち上がれば良い。',
+  '「備えあれば憂いなし」— 準備をしておけば、いざという時に困らない。',
+  '「石の上にも三年」— 辛抱強く続けることで、成果が生まれる。',
+  '「聞くは一時の恥、聞かぬは一生の恥」— 分からないことは素直に聞こう。',
+  '「良薬は口に苦し」— 耳の痛いことほど、自分の成長になる。',
+  '「一期一会」— 今この出会いと瞬間を大切に。',
+  '「案ずるより産むが易し」— やってみると、案外うまくいくものだ。',
+  '「塵も積もれば山となる」— 小さな積み重ねが大きな成果につながる。',
+  '「初心忘るべからず」— 始めた頃の気持ちと謙虚さを忘れずに。',
+  '「時は金なり」— 時間はお金と同じくらい大切な資源だ。',
+  '「情けは人の為ならず」— 人への親切は、巡り巡って自分に返ってくる。',
+  '「百聞は一見に如かず」— 聞くより実際に見たほうが確かな理解が得られる。',
+  '「好きこそ物の上手なれ」— 好きなことには自然と熱中でき、上達も早い。',
+  '「三人寄れば文殊の知恵」— チームで考えれば、より良いアイデアが生まれる。',
+  '「転んでもただでは起きない」— 失敗からも必ず何かを得て次に活かそう。',
+  '「明日は明日の風が吹く」— 今日できることに集中し、明日を信じよう。',
+  '「知は力なり」— 学び続けることが、可能性を広げる。',
+  '「木を見て森を見ず」— 細部だけでなく、全体像を捉えることも大切だ。',
+  '「出る杭は打たれる」— 目立つことを恐れず、それでも誠実に行動しよう。',
+  '「笑う門には福来たる」— 明るい職場に、良い縁と結果が集まってくる。',
+  '「ローマは一日にして成らず」— 大きな成果は、長い積み重ねの上にある。',
+  '「言葉は心の鏡」— 日頃の言葉遣いに、人柄がにじみ出る。',
+  '「為せば成る」— やろうと決意すれば、必ず道は開ける。',
+  '「光陰矢の如し」— 時間はあっという間に過ぎる。今日を大切に。',
+  '「敵を知り己を知れば百戦危うからず」— 状況を正確に把握することが成功の鍵。',
+  '「雨降って地固まる」— 困難を乗り越えた後こそ、強い基盤ができる。',
+];
+
+function renderDailyQuote(){
+  const el=document.getElementById('daily-quote');
+  if(!el) return;
+  // 日付をシードにして毎日同じ格言が出る（翌日になると変わる）
+  const today=new Date();
+  const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
+  const idx=seed%QUOTES.length;
+  el.textContent=QUOTES[idx];
+}
+
 // ===== INIT =====
 document.getElementById('today-date').textContent=new Date().toLocaleDateString('ja-JP',{month:'long',day:'numeric',weekday:'short'});
 
@@ -698,6 +742,7 @@ async function refreshAll(){
   await loadBlogs();
   updateGreeting();
   updateAvatar();
+  renderDailyQuote();
   renderHomeNews();
   renderHomeBlog();
   updateAlert();
