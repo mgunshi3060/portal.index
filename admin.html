@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>管理者ページ — 社内ポータル</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -126,6 +126,58 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
 .token-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;}
 .token-ok{background:var(--green-l);color:var(--green-dd);}
 .token-ng{background:var(--red-l);color:#a32d2d;}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:680px){
+  /* ナビ */
+  .admin-nav{padding:0 12px;gap:8px;}
+  .admin-nav-title{font-size:13px;}
+  .admin-nav-badge{display:none;}
+  #gh-status-badge{display:none;}
+  .portal-link{font-size:11px;padding:4px 8px;}
+  .logout-btn{font-size:11px;}
+
+  /* レイアウト: サイドバーを上部タブに変える */
+  .admin-body{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+  .sidebar{
+    position:static;max-height:none;overflow-x:auto;overflow-y:hidden;
+    flex-direction:row;flex-wrap:nowrap;padding:8px;
+    border-right:none;border-bottom:0.5px solid var(--border);
+    gap:4px;white-space:nowrap;
+  }
+  .sb-item{white-space:nowrap;padding:7px 12px;font-size:12px;flex-shrink:0;width:auto;}
+  .sb-sep{display:none;}
+  .sb-section{display:none;}
+  .sidebar > div:last-child{display:none;} /* カウント表示を非表示 */
+
+  /* メイン */
+  .admin-main{padding:12px;}
+  .page-title{font-size:16px;}
+
+  /* フォーム */
+  .form-row{grid-template-columns:1fr;}
+  .upload-zone{padding:20px;}
+  .blog-form-wrap{padding:14px;}
+  .blog-form-wrap > div[style*="grid-template-columns:1fr 1fr 1fr"]{
+    display:grid!important;grid-template-columns:1fr!important;
+  }
+  .blog-form-3col{grid-template-columns:1fr!important;}
+  .token-box,.meta-form{padding:14px;}
+
+  /* テーブル: スクロール可能に */
+  .doc-table{font-size:12px;}
+  .doc-table th,.doc-table td{padding:8px;}
+  .manage-toolbar{flex-wrap:wrap;}
+  .manage-toolbar > *{min-width:0;}
+
+  /* ログイン */
+  .login-box{width:min(340px,94vw);padding:28px 20px;}
+}
+
+@media(max-width:400px){
+  .sidebar{padding:6px 4px;}
+  .sb-item{padding:6px 10px;font-size:11px;}
+}
 </style>
 </head>
 <body>
@@ -262,7 +314,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             <label>タイトル <span style="color:var(--red)">*</span></label>
             <input type="text" id="b-title" placeholder="記事タイトルを入力">
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;" class="fl">
+          <div class="blog-form-3col" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;" class="fl">
             <div>
               <label>カテゴリ</label>
               <select id="b-category">

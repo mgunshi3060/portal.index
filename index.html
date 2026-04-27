@@ -134,7 +134,7 @@ button{font-family:inherit;}
 .filter-btn.active{background:var(--green);color:white;border-color:var(--green);font-weight:600;}
 .notice-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;cursor:pointer;transition:border-color .15s;}
 .notice-card:hover{border-color:var(--green);}
-.notice-thumb{width:56px;height:72px;background:#eceae4;border-radius:var(--radius);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.notice-thumb{width:72px;height:96px;background:#eceae4;border-radius:var(--radius);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .notice-thumb img{width:100%;height:100%;object-fit:cover;}
 .notice-body{flex:1;min-width:0;}
 .notice-title{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.4;}
@@ -186,7 +186,7 @@ button{font-family:inherit;}
   .blog-mini-grid{grid-template-columns:1fr 1fr;}
 
   /* お知らせカード */
-  .notice-thumb{width:44px;height:56px;}
+  .notice-thumb{width:54px;height:72px;}
   .notice-dl{display:none;}
 }
 
@@ -215,7 +215,6 @@ button{font-family:inherit;}
   <button class="nav-tab" onclick="showPage('files',this,4)">ファイル検索</button>
   <div class="nav-right">
     <a class="admin-link" href="admin.html">⚙ 管理者</a>
-    <div class="nav-avatar" id="nav-avatar" onclick="openNamePrompt()">?</div>
   </div>
 </nav>
 
@@ -237,19 +236,6 @@ button{font-family:inherit;}
     <button class="bn-tab" id="bnt-files" onclick="showPage('files',null,4)">
       <div class="bn-tab-icon">🗂</div><div class="bn-tab-label">ファイル</div>
     </button>
-  </div>
-</div>
-
-<!-- NAME PROMPT -->
-<div id="name-prompt-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:#fff;border-radius:14px;padding:28px;width:min(300px,100%);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
-    <div style="font-size:32px;margin-bottom:10px;">👋</div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">はじめまして！</div>
-    <div style="font-size:12px;color:#666;margin-bottom:14px;">あなたのお名前を教えてください</div>
-    <input id="name-prompt-input" type="text" placeholder="例：田中 健" maxlength="20"
-      style="width:100%;height:42px;border:0.5px solid rgba(0,0,0,.15);border-radius:10px;padding:0 12px;font-size:15px;text-align:center;outline:none;margin-bottom:12px;font-family:inherit;"
-      onkeydown="if(event.key==='Enter')saveUsername()">
-    <button onclick="saveUsername()" style="width:100%;height:42px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">決定</button>
   </div>
 </div>
 
@@ -374,20 +360,8 @@ button{font-family:inherit;}
   <div style="color:var(--text2);text-align:center;padding:60px 0;">(準備中)</div>
 </div>
 
-<!-- PDF MODAL -->
-<div class="modal-bg" id="pdf-modal" onclick="if(event.target===this)closePdfModal()">
-  <div class="modal-box">
-    <div class="modal-hd">
-      <div class="modal-title" id="pdf-modal-title"></div>
-      <button class="modal-close" onclick="closePdfModal()">✕</button>
-    </div>
-    <div class="modal-pages" id="pdf-modal-pages"></div>
-  </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 // ===== CONSTANTS =====
 const TAG={
@@ -427,30 +401,12 @@ function showPage(id,btn,idx){
   window.scrollTo(0,0);
 }
 
-// ===== USER NAME =====
-function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
-function openNamePrompt(){
-  document.getElementById('name-prompt-input').value=getUsername();
-  document.getElementById('name-prompt-bg').style.display='flex';
-  setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
-}
-function saveUsername(){
-  const v=document.getElementById('name-prompt-input').value.trim();
-  if(!v) return;
-  localStorage.setItem(NAME_KEY,v);
-  document.getElementById('name-prompt-bg').style.display='none';
-  updateGreeting(); updateAvatar();
-}
+// ===== GREETING =====
 function updateGreeting(){
-  const name=getUsername();
   const h=new Date().getHours();
   const greet=h<11?'おはようございます':h<18?'こんにちは':'こんばんは';
-  document.getElementById('greeting-text').textContent=name?greet+'、'+name+'さん':greet;
-  document.getElementById('notice-sub-text').textContent=name?'今日もよろしくお願いします':'ようこそ！お名前を設定してください';
-}
-function updateAvatar(){
-  const name=getUsername();
-  document.getElementById('nav-avatar').textContent=name?name.slice(0,2):'?';
+  document.getElementById('greeting-text').textContent=greet;
+  document.getElementById('notice-sub-text').textContent='今日もよろしくお願いします';
 }
 
 // ===== DATA =====
@@ -596,7 +552,7 @@ function renderHomeNews(){
   el.innerHTML=sorted.map(d=>{
     const t=TAG[d.tag]||TAG.other;
     const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
-    return `<div class="news-item" onclick="openPdfModal('${d.id}')">
+    return `<div class="news-item" onclick="openPdfInBrowser('${d.id}')">
       <span class="nbadge ${t.cls}">${t.label}</span>
       <div><div class="news-title">${d.name.replace(/\.pdf$/i,'')}</div><div class="news-date">${dateStr}</div></div>
     </div>`;
@@ -639,8 +595,8 @@ function renderNotice(){
     const t=TAG[d.tag]||TAG.other;
     const dateStr=new Date(d.date).toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
     const isNew=(Date.now()-new Date(d.date).getTime())<86400000*3;
-    return `<div class="notice-card" onclick="openPdfModal('${d.id}')">
-      <div class="notice-thumb">${d.thumbData?`<img src="${d.thumbData}">`:'📄'}</div>
+    return `<div class="notice-card" onclick="openPdfInBrowser('${d.id}')">
+      <div class="notice-thumb">${d.thumbData?`<img src="${d.thumbData}" style="width:100%;height:100%;object-fit:cover;">`:'<span style="font-size:20px;">📄</span>'}</div>
       <div class="notice-body">
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
           <span class="nbadge ${t.cls}">${t.label}</span>
@@ -670,40 +626,28 @@ function updateAlert(){
   else{bar.style.display='none';}
 }
 
-// ===== PDF MODAL =====
-async function openPdfModal(id){
+// ===== PDF OPEN IN BROWSER =====
+function openPdfInBrowser(id){
   const d=docs.find(x=>x.id===id);
   if(!d) return;
-  document.getElementById('pdf-modal-title').textContent=d.name.replace(/\.pdf$/i,'');
-  const mp=document.getElementById('pdf-modal-pages');
-  mp.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;"><div class="ring"></div></div>';
-  document.getElementById('pdf-modal').classList.add('open');
-  const src=d.pdfB64||d.url;
-  if(!src){mp.innerHTML='<div style="grid-column:1/-1;color:var(--text3);padding:20px;text-align:center;">PDFのURLが見つかりません</div>';return;}
+  const src=d.url||d.pdfB64||null;
+  if(!src){ alert('PDFのURLが見つかりません'); return; }
+  // URLの場合はそのまま新しいタブで開く
+  if(d.url){ window.open(d.url,'_blank'); return; }
+  // base64の場合はBlobに変換してブラウザで開く
   try{
-    const pdfDoc=await pdfjsLib.getDocument(src).promise;
-    mp.innerHTML='';
-    for(let i=1;i<=pdfDoc.numPages;i++){
-      const wrap=document.createElement('div');wrap.className='page-th';
-      wrap.innerHTML='<div class="ring"></div>';
-      mp.appendChild(wrap);
-      const page=await pdfDoc.getPage(i);
-      const vp=page.getViewport({scale:1.2});
-      const canvas=document.createElement('canvas');
-      canvas.width=vp.width;canvas.height=vp.height;
-      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-      wrap.innerHTML=`<span class="page-num">${i}/${pdfDoc.numPages}</span>`;
-      wrap.appendChild(canvas);
-    }
-  }catch(e){
-    mp.innerHTML='<div style="grid-column:1/-1;color:red;padding:20px;text-align:center;">PDFを読み込めませんでした</div>';
-  }
+    const b64=d.pdfB64.includes(',') ? d.pdfB64.split(',')[1] : d.pdfB64;
+    const bin=atob(b64);
+    const arr=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    const blob=new Blob([arr],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    window.open(url,'_blank');
+  }catch(e){ alert('PDFを開けませんでした'); }
 }
-function closePdfModal(){document.getElementById('pdf-modal').classList.remove('open');}
 
 
-// ===== WEATHER (Open-Meteo + 管理者設定の都市名) =====
-const WEATHER_CITY_KEY='portal_weather_city'; // 例: "Ushiku" "Tokyo" "大阪" "300-1200"
+// ===== WEATHER (Open-Meteo / つくば市固定) =====
 const WMO_ICONS={
   0:'☀️',1:'🌤',2:'⛅',3:'☁️',
   45:'🌫',48:'🌫',
@@ -714,32 +658,17 @@ const WMO_ICONS={
   95:'⛈',96:'⛈',99:'⛈'
 };
 
-function getWeatherCity(){ return localStorage.getItem(WEATHER_CITY_KEY)||''; }
-
+// つくば市（緯度:36.0835, 経度:140.0764）固定
 async function loadWeather(){
   const el=document.getElementById('weather-block');
-  const cityQuery=getWeatherCity();
-
-  if(!cityQuery){
-    el.innerHTML='<span style="font-size:10px;opacity:.55;color:white;">管理者ページで地域を設定してください</span>';
-    return;
-  }
-
+  const lat=36.0835, lon=140.0764, cityName='つくば市';
   try{
-    // Step1: Open-Meteo Geocoding API で都市名→緯度経度
-    const geoRes=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=1&language=ja`);
-    const geoData=await geoRes.json();
-    if(!geoData.results||!geoData.results.length) throw new Error('都市が見つかりません: '+cityQuery);
-    const {latitude:lat, longitude:lon, name:cityName}=geoData.results[0];
-
-    // Step2: 天気取得（無料・APIキー不要）
     const wxRes=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,apparent_temperature&timezone=Asia%2FTokyo`);
     const wx=await wxRes.json();
     const cur=wx.current;
     const icon=WMO_ICONS[cur.weathercode]||'🌡';
     const temp=Math.round(cur.temperature_2m);
     const feel=Math.round(cur.apparent_temperature);
-
     el.innerHTML=`<div class="weather-chip">
       <span class="weather-icon">${icon}</span>
       <span class="weather-temp">${temp}°C</span>
@@ -747,7 +676,7 @@ async function loadWeather(){
       <span class="weather-loc">${cityName}</span>
     </div>`;
   }catch(e){
-    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗（都市名を確認）</span>`;
+    el.innerHTML=`<span style="font-size:10px;opacity:.5;color:white;">⚠ 天気取得失敗</span>`;
     console.warn('Weather error:',e.message);
   }
 }
@@ -759,7 +688,6 @@ async function refreshAll(){
   await loadDocs();
   await loadBlogs();
   updateGreeting();
-  updateAvatar();
   renderHomeNews();
   renderHomeBlog();
   updateAlert();
@@ -768,13 +696,6 @@ async function refreshAll(){
 refreshAll();
 loadWeather();
 loadAndRenderCalendar();
-
-if(!getUsername()){
-  setTimeout(()=>{
-    document.getElementById('name-prompt-bg').style.display='flex';
-    setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
-  },400);
-}
 
 window.addEventListener('storage',e=>{
   if(e.key===STORE_KEY||e.key===BLOG_KEY) refreshAll();
