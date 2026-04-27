@@ -197,6 +197,14 @@ button{font-family:inherit;}
 
 /* Google Calendar設定モーダル */
 .cal-modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(440px,96vw);padding:20px;}
+.evt-add-form{background:#f8f8f6;border-radius:var(--radius);padding:12px;margin-bottom:10px;border:0.5px solid var(--border);}
+.evt-add-form input,.evt-add-form select{width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;background:#fff;}
+.evt-add-form input:focus,.evt-add-form select:focus{border-color:var(--green);}
+.evt-add-row{display:flex;gap:8px;}
+.evt-add-row input{margin-bottom:0;}
+.evt-add-btn{height:36px;background:var(--green);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;padding:0 16px;margin-top:2px;}
+.evt-del-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s;flex-shrink:0;}
+.evt-del-btn:hover{color:var(--red);}
 .cal-input{width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:inherit;margin-bottom:8px;transition:border-color .15s;}
 .cal-input:focus{border-color:var(--green);}
 .cal-save-btn{height:38px;background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;}
@@ -244,51 +252,6 @@ button{font-family:inherit;}
       style="width:100%;height:42px;border:0.5px solid rgba(0,0,0,.15);border-radius:10px;padding:0 12px;font-size:15px;text-align:center;outline:none;margin-bottom:12px;font-family:inherit;"
       onkeydown="if(event.key==='Enter')saveUsername()">
     <button onclick="saveUsername()" style="width:100%;height:42px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">決定</button>
-  </div>
-</div>
-
-<!-- GOOGLE CALENDAR SETTINGS MODAL -->
-<div id="cal-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:center;justify-content:center;padding:12px;overflow-y:auto;">
-  <div class="cal-modal-box" style="max-height:90vh;overflow-y:auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div style="font-size:15px;font-weight:700;">📅 Googleカレンダー設定</div>
-      <button onclick="closeCalModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);line-height:1;padding:0 4px;">✕</button>
-    </div>
-
-    <!-- STEP 1 -->
-    <div style="background:#f5f9ff;border-left:3px solid #378ADD;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:700;color:#185fa5;margin-bottom:6px;">STEP 1 ： APIキーを取得する</div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.8;">
-        ① <a href="https://console.cloud.google.com/" target="_blank" style="color:#185fa5;">console.cloud.google.com</a> を開く<br>
-        ② 「APIとサービス」→「ライブラリ」→ <b>Google Calendar API</b> を有効化<br>
-        ③ 「APIとサービス」→「認証情報」→「＋認証情報を作成」→「APIキー」<br>
-        ④ 生成されたキー（<code style="background:#e8e8e8;padding:1px 5px;border-radius:3px;">AIzaSy...</code>）をコピー
-      </div>
-    </div>
-
-    <!-- STEP 2 -->
-    <div style="background:#f5fff9;border-left:3px solid #1D9E75;border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:6px;">STEP 2 ： カレンダーを「一般公開」にする</div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.8;">
-        ① <a href="https://calendar.google.com/" target="_blank" style="color:#185fa5;">calendar.google.com</a> を開く<br>
-        ② 対象カレンダーの「︙」→「設定と共有」<br>
-        ③ 「アクセス権限」→ <b>「一般公開して誰でも利用できるようにする」にチェック</b><br>
-        ④ 同ページ下部「カレンダーの統合」→「カレンダーID」をコピー
-      </div>
-    </div>
-
-    <!-- 入力欄 -->
-    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">カレンダーID</div>
-    <input class="cal-input" type="text" id="cal-id-input" placeholder="xxx@group.calendar.google.com">
-    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Google API キー</div>
-    <input class="cal-input" type="password" id="cal-key-input" placeholder="AIzaSy...">
-
-    <!-- エラー表示 -->
-    <div id="cal-test-result" style="display:none;font-size:12px;border-radius:6px;padding:8px 12px;margin-bottom:10px;line-height:1.6;"></div>
-
-    <button class="cal-save-btn" onclick="saveCalSettings()">接続テストして保存</button>
-    <button onclick="clearCalSettings()" style="width:100%;height:38px;margin-top:8px;background:none;border:0.5px solid var(--red);border-radius:var(--radius);font-size:12px;cursor:pointer;color:var(--red);">設定をクリア（デモ表示に戻す）</button>
-    <button onclick="closeCalModal()" style="width:100%;height:38px;margin-top:6px;background:none;border:0.5px solid var(--border);border-radius:var(--radius);font-size:12px;cursor:pointer;">閉じる</button>
   </div>
 </div>
 
@@ -346,7 +309,6 @@ button{font-family:inherit;}
       <!-- UPCOMING EVENTS -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0">📅 直近のイベント</div>
-        <button class="cal-settings-btn" onclick="openCalModal()">⚙ 設定</button>
       </div>
       <div class="event-widget" id="event-widget-main">
         <div class="event-empty">カレンダーを設定すると<br>イベントが表示されます</div>
@@ -419,197 +381,109 @@ const CAT_BLOG={
 const STORE_KEY='portal_docs';
 const BLOG_KEY='portal_blogs';
 const NAME_KEY='portal_username';
-const CAL_ID_KEY='portal_cal_id';
-const CAL_KEY_KEY='portal_cal_key';
+// ===== LOCAL EVENTS (localStorage管理・API不要・安定動作) =====
+const EVENTS_KEY='portal_local_events';
 
-let docs=[], blogs=[];
+function getEvents(){
+  try{ return JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }catch(_){ return []; }
+}
+function saveEvents(ev){ localStorage.setItem(EVENTS_KEY,JSON.stringify(ev)); }
 
-// ===== NAVIGATION =====
-const PAGE_IDS=['home','notice','blog'];
-const BNT_IDS=['bnt-home','bnt-notice',null];
+function openEvtModal(){
+  // 今日の日付をデフォルトセット
+  document.getElementById('evt-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('evt-name').value='';
+  document.getElementById('evt-time').value='';
+  renderEvtModalList();
+  document.getElementById('evt-modal-bg').style.display='flex';
+}
+function closeEvtModal(){ document.getElementById('evt-modal-bg').style.display='none'; }
 
-function showPage(id,btn,idx){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.bn-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(idx!==undefined && BNT_IDS[idx]) document.getElementById(BNT_IDS[idx]).classList.add('active');
-  if(id==='notice') renderNotice();
-  window.scrollTo(0,0);
+function addEvent(){
+  const name=document.getElementById('evt-name').value.trim();
+  const date=document.getElementById('evt-date').value;
+  const time=document.getElementById('evt-time').value.trim();
+  if(!name||!date){ return; }
+  const events=getEvents();
+  events.push({id:'e'+Date.now(), name, date, time});
+  saveEvents(events);
+  document.getElementById('evt-name').value='';
+  document.getElementById('evt-time').value='';
+  renderEvtModalList();
+  renderEventWidget();
 }
 
-// ===== USER NAME =====
-function getUsername(){ return localStorage.getItem(NAME_KEY)||''; }
-function openNamePrompt(){
-  document.getElementById('name-prompt-input').value=getUsername();
-  document.getElementById('name-prompt-bg').style.display='flex';
-  setTimeout(()=>document.getElementById('name-prompt-input').focus(),100);
-}
-function saveUsername(){
-  const v=document.getElementById('name-prompt-input').value.trim();
-  if(!v) return;
-  localStorage.setItem(NAME_KEY,v);
-  document.getElementById('name-prompt-bg').style.display='none';
-  updateGreeting(); updateAvatar();
-}
-function updateGreeting(){
-  const name=getUsername();
-  const h=new Date().getHours();
-  const greet=h<11?'おはようございます':h<18?'こんにちは':'こんばんは';
-  document.getElementById('greeting-text').textContent=name?greet+'、'+name+'さん':greet;
-  document.getElementById('notice-sub-text').textContent=name?'今日もよろしくお願いします':'ようこそ！お名前を設定してください';
-}
-function updateAvatar(){
-  const name=getUsername();
-  document.getElementById('nav-avatar').textContent=name?name.slice(0,2):'?';
+function deleteEvent(id){
+  saveEvents(getEvents().filter(e=>e.id!==id));
+  renderEvtModalList();
+  renderEventWidget();
 }
 
-// ===== DATA (api.js に委譲 — XSERVER移行時は api.js の PORTAL_API_MODE を変更するだけ) =====
-async function loadDocs(){
-  docs = await apiLoad('docs', STORE_KEY);
-}
-async function loadBlogs(){
-  blogs = await apiLoad('blogs', BLOG_KEY);
-}
-
-// ===== DATE =====
-function formatDateShort(d){ return (d.getMonth()+1)+'/'+(d.getDate()); }
-function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
-
-// ===== GOOGLE CALENDAR =====
-const CAL_ID_DEMO=''; // 設定前はデモデータを使用
-
-function getCalId(){ return localStorage.getItem(CAL_ID_KEY)||''; }
-function getCalKey(){ return localStorage.getItem(CAL_KEY_KEY)||''; }
-
-function openCalModal(){
-  document.getElementById('cal-id-input').value=getCalId();
-  document.getElementById('cal-key-input').value=getCalKey();
-  document.getElementById('cal-modal-bg').style.display='flex';
-}
-function closeCalModal(){
-  document.getElementById('cal-modal-bg').style.display='none';
-  const r=document.getElementById('cal-test-result');
-  if(r) r.style.display='none';
-}
-function clearCalSettings(){
-  localStorage.removeItem(CAL_ID_KEY);
-  localStorage.removeItem(CAL_KEY_KEY);
-  closeCalModal();
-  loadAndRenderCalendar();
-}
-async function saveCalSettings(){
-  const id=document.getElementById('cal-id-input').value.trim();
-  const key=document.getElementById('cal-key-input').value.trim();
-  const resultEl=document.getElementById('cal-test-result');
-
-  if(!id||!key){
-    resultEl.style.display='block';
-    resultEl.style.background='#FCEBEB'; resultEl.style.border='0.5px solid #f7c1c1'; resultEl.style.color='#a32d2d';
-    resultEl.textContent='❌ カレンダーIDとAPIキーを両方入力してください';
-    return;
-  }
-
-  // 接続テスト
-  resultEl.style.display='block';
-  resultEl.style.background='#f5f5f5'; resultEl.style.border='0.5px solid #ddd'; resultEl.style.color='#666';
-  resultEl.textContent='⏳ 接続テスト中...';
-
-  const now=new Date();
-  const timeMin=now.toISOString();
-  const timeMax=new Date(now.getTime()+86400000).toISOString();
-  const testUrl=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(id)}/events?key=${key}&timeMin=${timeMin}&timeMax=${timeMax}&maxResults=1&singleEvents=true`;
-
-  try{
-    const res=await fetch(testUrl);
-    if(res.ok){
-      localStorage.setItem(CAL_ID_KEY,id);
-      localStorage.setItem(CAL_KEY_KEY,key);
-      resultEl.style.background='#E1F5EE'; resultEl.style.border='0.5px solid #9FE1CB'; resultEl.style.color='#085041';
-      resultEl.textContent='✅ 接続成功！カレンダーを読み込みます';
-      setTimeout(()=>{ closeCalModal(); loadAndRenderCalendar(); },800);
-    }else{
-      const err=await res.json().catch(()=>({}));
-      const status=res.status;
-      resultEl.style.background='#FCEBEB'; resultEl.style.border='0.5px solid #f7c1c1'; resultEl.style.color='#a32d2d';
-      if(status===400) resultEl.textContent='❌ カレンダーIDが正しくありません (400)。「カレンダーID」欄の値を確認してください';
-      else if(status===403) resultEl.innerHTML='❌ APIキーが無効またはGoogle Calendar APIが未有効です (403)<br>→ Cloud Console でCalendar APIを有効化してください';
-      else if(status===404) resultEl.innerHTML='❌ カレンダーが見つかりません (404)<br>→ カレンダーIDを確認し、「一般公開」設定になっているか確認してください';
-      else resultEl.textContent='❌ エラー (HTTP '+status+'): '+(err.error?.message||res.statusText);
-    }
-  }catch(e){
-    resultEl.style.background='#FCEBEB'; resultEl.style.border='0.5px solid #f7c1c1'; resultEl.style.color='#a32d2d';
-    resultEl.textContent='❌ ネットワークエラー: '+e.message;
-  }
+function renderEvtModalList(){
+  const el=document.getElementById('evt-modal-list');
+  const today=new Date().toISOString().slice(0,10);
+  const list=getEvents().sort((a,b)=>a.date.localeCompare(b.date));
+  if(!list.length){ el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px;">登録されているイベントはありません</div>'; return; }
+  el.innerHTML=list.map(e=>{
+    const isPast=e.date<today;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);opacity:${isPast?'.45':'1'}">
+      <div style="flex-shrink:0;font-size:12px;font-weight:600;color:var(--text2);min-width:60px;">${e.date.slice(5).replace('-','/')}</div>
+      <div style="flex:1;font-size:13px;font-weight:600;">${esc(e.name)}${e.time?` <span style="font-size:11px;color:var(--text2);">${esc(e.time)}</span>`:''}</div>
+      <button class="evt-del-btn" onclick="deleteEvent('${e.id}')">✕</button>
+    </div>`;
+  }).join('');
 }
 
-async function loadAndRenderCalendar(){
-  const calId=getCalId();
-  const apiKey=getCalKey();
-
-  if(!calId||!apiKey){
-    renderCalendarEvents(getDemoEvents());
-    return;
-  }
-
-  // ローディング表示
+function renderEventWidget(){
   const heroEl=document.getElementById('hero-event-list');
-  if(heroEl) heroEl.innerHTML='<span class="hero-loading">📅 読み込み中...</span>';
   const widget=document.getElementById('event-widget-main');
-  if(widget) widget.innerHTML='<div class="event-empty">読み込み中...</div>';
+  const today=new Date().toISOString().slice(0,10);
+  const events=getEvents().filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
 
-  // 今日の00:00からmaxDays日後まで取得
-  const maxDays=60;
-  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
-  const timeMin=todayStart.toISOString();
-  const timeMax=new Date(todayStart.getTime()+maxDays*86400000).toISOString();
-  const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${apiKey}&timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
+  // stat
+  document.getElementById('stat-event').textContent=events.length;
 
-  try{
-    const res=await fetch(url);
-    if(!res.ok){
-      const err=await res.json().catch(()=>({}));
-      throw new Error('HTTP '+res.status+': '+(err.error?.message||res.statusText));
+  // ヒーロー内チップ（直近3件）
+  if(heroEl){
+    if(!events.length){
+      heroEl.innerHTML='<span class="hero-loading" style="opacity:.7;">イベントなし — ＋追加・管理から登録</span>';
+    }else{
+      heroEl.innerHTML=events.slice(0,3).map(e=>{
+        const isToday=e.date===today;
+        const [y,m,d]=e.date.split('-');
+        const label=isToday?'今日':(m+'/'+d);
+        return `<div class="hero-event-chip">
+          <span class="hero-event-chip-date">${label}</span>
+          <span>${esc(e.name)}</span>
+          ${e.time?`<span class="hero-event-chip-date">${e.time}</span>`:''}
+        </div>`;
+      }).join('');
     }
-    const data=await res.json();
-    const events=(data.items||[]).map(e=>{
-      // 終日イベント: "2025-05-01" → ローカル日時として解釈（UTC問題を回避）
-      const isAllDay=!!e.start.date;
-      let startDate;
-      if(isAllDay){
-        const [y,m,d]=e.start.date.split('-').map(Number);
-        startDate=new Date(y,m-1,d,0,0,0,0); // ローカル時刻でパース
-      }else{
-        startDate=new Date(e.start.dateTime);
-      }
-      return {
-        title:e.summary||'(タイトルなし)',
-        start:startDate,
-        allDay:isAllDay,
-        location:e.location||''
-      };
-    });
-    renderCalendarEvents(events);
-  }catch(e){
-    console.warn('Calendar error:',e);
-    const errMsg=e.message||'';
-    let hint='⚠ カレンダー設定を確認';
-    if(errMsg.includes('403')) hint='⚠ APIキー/Calendar APIを確認';
-    else if(errMsg.includes('404')) hint='⚠ カレンダーIDまたは公開設定を確認';
-    if(heroEl) heroEl.innerHTML=`<span class="hero-loading" style="color:rgba(255,255,255,.6);cursor:pointer;" onclick="openCalModal()">${hint} →タップして設定</span>`;
-    renderCalendarEvents(getDemoEvents());
   }
-}
 
-function getDemoEvents(){
-  // カレンダー未設定時のデモ
-  const t=new Date(); t.setHours(0,0,0,0);
-  return [
-    {title:'朝会',start:new Date(t.getTime()+0*86400000),allDay:false},
-    {title:'出勤日',start:new Date(t.getTime()+4*86400000),allDay:true},
-    {title:'臨時出社',start:new Date(t.getTime()+6*86400000),allDay:true},
-  ];
+  // サイドウィジェット（直近8件）
+  if(!widget) return;
+  if(!events.length){
+    widget.innerHTML='<div class="event-empty" style="padding:16px 0;text-align:center;"><div style="font-size:11px;color:var(--text3);">登録されているイベントはありません</div></div>';
+    return;
+  }
+  widget.innerHTML=events.slice(0,8).map(e=>{
+    const isToday=e.date===today;
+    const [,m,d]=e.date.split('-');
+    const weekday=['日','月','火','水','木','金','土'][new Date(e.date+'T00:00:00').getDay()];
+    const wcolor=['color:#e24b4a','','','','','','color:#185fa5'][new Date(e.date+'T00:00:00').getDay()];
+    return `<div class="event-item${isToday?' event-today':''}">
+      <div class="event-date-badge${isToday?' event-today':''}">
+        <div class="event-date-m">${m}月</div>
+        <div class="event-date-d">${d}</div>
+        <div style="font-size:8px;font-weight:600;${isToday?'color:white;':wcolor}">${weekday}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-name">${esc(e.name)}${isToday?' <span style="font-size:9px;background:var(--amber);color:white;padding:1px 5px;border-radius:3px;font-weight:600;vertical-align:middle;">今日</span>':''}</div>
+        <div class="event-time">${e.time||'終日'}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderCalendarEvents(events){
@@ -845,7 +719,7 @@ async function refreshAll(){
 
 refreshAll();
 loadWeather();
-loadAndRenderCalendar();
+renderEventWidget();
 
 if(!getUsername()){
   setTimeout(()=>{

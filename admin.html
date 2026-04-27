@@ -165,6 +165,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
       <button class="sb-item active" onclick="showAdmin('upload',this)">📤 PDFアップロード</button>
       <button class="sb-item" onclick="showAdmin('manage',this)">📋 ドキュメント管理</button>
       <div class="sb-sep"></div>
+      <div class="sb-section">カレンダー</div>
+      <button class="sb-item" onclick="showAdmin('cal-manage',this)">📅 イベント管理</button>
+      <div class="sb-sep"></div>
       <div class="sb-section">ブログ</div>
       <button class="sb-item" onclick="showAdmin('blog-post',this)">✏️ 新規投稿</button>
       <button class="sb-item" onclick="showAdmin('blog-manage',this)">📰 ブログ管理</button>
@@ -250,6 +253,65 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             </tr>
           </thead>
           <tbody id="manage-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== CALENDAR MANAGE ===== -->
+      <div class="admin-page" id="ap-cal-manage">
+        <div class="page-title">📅 イベント管理</div>
+        <div class="info-box info-green">✅ ここで登録・削除したイベントは一般ページのホームに即時反映されます。</div>
+
+        <!-- 追加フォーム -->
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;max-width:560px;margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text2);">＋ 新規イベント追加</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;align-items:end;">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label>イベント名 <span style="color:var(--red)">*</span></label>
+              <input type="text" id="cal-evt-name" placeholder="例：全体朝会・決算発表・出勤日" maxlength="60"
+                style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''">
+            </div>
+            <div class="form-group">
+              <label>日付 <span style="color:var(--red)">*</span></label>
+              <input type="date" id="cal-evt-date"
+                style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''">
+            </div>
+            <div class="form-group">
+              <label>時間（任意）</label>
+              <input type="text" id="cal-evt-time" placeholder="例：09:00" maxlength="10"
+                style="width:100%;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''">
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;">
+              <button class="upload-btn" onclick="calAdminAddEvent()" style="width:100%;justify-content:center;">＋ 追加</button>
+            </div>
+          </div>
+          <div id="cal-add-msg" style="font-size:12px;margin-top:4px;"></div>
+        </div>
+
+        <!-- 一覧 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <input class="manage-search" type="text" placeholder="イベント名で検索..." oninput="renderCalManage()" id="cal-search" style="max-width:280px;">
+          <select class="tag-filter" id="cal-filter-period" onchange="renderCalManage()" style="height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;background:var(--surface);outline:none;">
+            <option value="all">すべて（過去含む）</option>
+            <option value="upcoming" selected>今後のイベントのみ</option>
+          </select>
+          <span id="cal-manage-count" style="font-size:12px;color:var(--text3);margin-left:auto;"></span>
+          <button onclick="calAdminDeleteAll()" style="white-space:nowrap;font-size:12px;height:34px;padding:0 14px;background:var(--red);color:white;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;">🗑 全件削除</button>
+        </div>
+
+        <table class="doc-table" id="cal-manage-table">
+          <thead>
+            <tr>
+              <th style="width:110px">日付</th>
+              <th style="width:80px">時間</th>
+              <th>イベント名</th>
+              <th style="width:80px">状態</th>
+              <th style="width:80px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="cal-manage-tbody"></tbody>
         </table>
       </div>
 
@@ -672,6 +734,10 @@ function showAdmin(id,btn){
   if(id==='portal-settings') initPortalSettings();
   if(id==='blog-manage'){ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; renderBlogManage(); }
   if(id==='github'){ const t=_ghToken(); if(t) document.getElementById('gh-token-input').value=t; }
+  if(id==='cal-manage'){
+    document.getElementById('cal-evt-date').value=new Date().toISOString().slice(0,10);
+    renderCalManage();
+  }
 }
 
 // ========== PDF UPLOAD ==========
@@ -1049,6 +1115,82 @@ async function checkGhFiles(){
     }catch(e){ results.push(`❌ ${path}：見つかりません`); }
   }
   msg.style.color='var(--text)'; msg.innerHTML=results.join('<br>');
+}
+
+// ========== CALENDAR ADMIN ==========
+const EVENTS_KEY='portal_local_events';
+function getEvents(){ try{ return JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }catch(_){ return []; } }
+function saveEvents(ev){ localStorage.setItem(EVENTS_KEY,JSON.stringify(ev)); }
+
+function calAdminAddEvent(){
+  const name=document.getElementById('cal-evt-name').value.trim();
+  const date=document.getElementById('cal-evt-date').value;
+  const time=document.getElementById('cal-evt-time').value.trim();
+  const msg=document.getElementById('cal-add-msg');
+  if(!name){ msg.style.color='#a32d2d'; msg.textContent='イベント名を入力してください'; return; }
+  if(!date){ msg.style.color='#a32d2d'; msg.textContent='日付を選択してください'; return; }
+  const events=getEvents();
+  events.push({id:'e'+Date.now(), name, date, time});
+  saveEvents(events);
+  document.getElementById('cal-evt-name').value='';
+  document.getElementById('cal-evt-time').value='';
+  msg.style.color='var(--green)'; msg.textContent='✅ 追加しました';
+  setTimeout(()=>msg.textContent='',2500);
+  renderCalManage();
+  showToast('イベントを追加しました ✓');
+}
+
+function calAdminDeleteEvent(id){
+  if(!confirm('このイベントを削除しますか？')) return;
+  saveEvents(getEvents().filter(e=>e.id!==id));
+  renderCalManage();
+  showToast('削除しました ✓');
+}
+
+function calAdminDeleteAll(){
+  const events=getEvents();
+  if(!events.length){ showToast('削除するイベントがありません','error'); return; }
+  if(!confirm('登録されているイベントを全件削除しますか？\n\nこの操作は取り消せません。')) return;
+  saveEvents([]);
+  renderCalManage();
+  showToast('全件削除しました ✓');
+}
+
+function renderCalManage(){
+  const tbody=document.getElementById('cal-manage-tbody');
+  const q=(document.getElementById('cal-search')||{value:''}).value.trim().toLowerCase();
+  const period=(document.getElementById('cal-filter-period')||{value:'upcoming'}).value;
+  const today=new Date().toISOString().slice(0,10);
+  let list=getEvents().sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+  if(period==='upcoming') list=list.filter(e=>e.date>=today);
+  if(q) list=list.filter(e=>e.name.toLowerCase().includes(q));
+  const countEl=document.getElementById('cal-manage-count');
+  if(countEl) countEl.textContent=list.length+'件';
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">
+      ${period==='upcoming'?'今後のイベントはありません':'登録されているイベントはありません'}
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML=list.map(e=>{
+    const isPast=e.date<today;
+    const isToday=e.date===today;
+    const [y,m,d]=e.date.split('-');
+    const weekday=['日','月','火','水','木','金','土'][new Date(e.date+'T00:00:00').getDay()];
+    const wcolor=isToday?'color:var(--green);font-weight:700;':isPast?'color:var(--text3);':'';
+    const statusBadge=isToday
+      ?'<span style="background:var(--green);color:white;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;">今日</span>'
+      :isPast
+      ?'<span style="background:#eceae4;color:var(--text3);font-size:10px;padding:2px 7px;border-radius:4px;">過去</span>'
+      :'<span style="background:var(--blue-l);color:#185fa5;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;">予定</span>';
+    return `<tr style="opacity:${isPast?'.55':'1'}">
+      <td style="${wcolor}font-size:13px;font-weight:600;">${y}/${m}/${d}（${weekday}）</td>
+      <td style="font-size:13px;color:var(--text2);">${e.time||'<span style="color:var(--text3)">終日</span>'}</td>
+      <td style="font-size:13px;font-weight:600;">${esc(e.name)}</td>
+      <td>${statusBadge}</td>
+      <td><button class="action-btn action-del" onclick="calAdminDeleteEvent('${e.id}')">削除</button></td>
+    </tr>`;
+  }).join('');
 }
 
 // ========== INIT ==========
