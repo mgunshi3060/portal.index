@@ -549,35 +549,56 @@ async function loadAndRenderCalendar(){
   const apiKey=getCalKey();
 
   if(!calId||!apiKey){
-    // デモデータを表示
     renderCalendarEvents(getDemoEvents());
     return;
   }
 
-  const now=new Date();
-  const timeMin=now.toISOString();
-  const timeMax=new Date(now.getTime()+30*86400000).toISOString(); // 30日後まで
-  const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=10`;
+  // ローディング表示
+  const heroEl=document.getElementById('hero-event-list');
+  if(heroEl) heroEl.innerHTML='<span class="hero-loading">📅 読み込み中...</span>';
+  const widget=document.getElementById('event-widget-main');
+  if(widget) widget.innerHTML='<div class="event-empty">読み込み中...</div>';
+
+  // 今日の00:00からmaxDays日後まで取得
+  const maxDays=60;
+  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+  const timeMin=todayStart.toISOString();
+  const timeMax=new Date(todayStart.getTime()+maxDays*86400000).toISOString();
+  const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${apiKey}&timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
 
   try{
     const res=await fetch(url);
-    if(!res.ok) throw new Error('カレンダー取得失敗: '+res.status);
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      throw new Error('HTTP '+res.status+': '+(err.error?.message||res.statusText));
+    }
     const data=await res.json();
-    const events=(data.items||[]).map(e=>({
-      title:e.summary||'(タイトルなし)',
-      start:new Date(e.start.dateTime||e.start.date),
-      end:e.end?new Date(e.end.dateTime||e.end.date):null,
-      allDay:!!e.start.date
-    }));
+    const events=(data.items||[]).map(e=>{
+      // 終日イベント: "2025-05-01" → ローカル日時として解釈（UTC問題を回避）
+      const isAllDay=!!e.start.date;
+      let startDate;
+      if(isAllDay){
+        const [y,m,d]=e.start.date.split('-').map(Number);
+        startDate=new Date(y,m-1,d,0,0,0,0); // ローカル時刻でパース
+      }else{
+        startDate=new Date(e.start.dateTime);
+      }
+      return {
+        title:e.summary||'(タイトルなし)',
+        start:startDate,
+        allDay:isAllDay,
+        location:e.location||''
+      };
+    });
     renderCalendarEvents(events);
   }catch(e){
     console.warn('Calendar error:',e);
-    renderCalendarEvents(getDemoEvents());
     const errMsg=e.message||'';
     let hint='⚠ カレンダー設定を確認';
-    if(errMsg.includes('403')) hint='⚠ APIキーまたはCalendar APIを確認';
+    if(errMsg.includes('403')) hint='⚠ APIキー/Calendar APIを確認';
     else if(errMsg.includes('404')) hint='⚠ カレンダーIDまたは公開設定を確認';
-    document.getElementById('hero-event-list').innerHTML=`<span class="hero-loading" style="color:rgba(255,255,255,.6);cursor:pointer;" onclick="openCalModal()">${hint} →タップして設定</span>`;
+    if(heroEl) heroEl.innerHTML=`<span class="hero-loading" style="color:rgba(255,255,255,.6);cursor:pointer;" onclick="openCalModal()">${hint} →タップして設定</span>`;
+    renderCalendarEvents(getDemoEvents());
   }
 }
 
@@ -592,10 +613,11 @@ function getDemoEvents(){
 }
 
 function renderCalendarEvents(events){
-  const todayD=today();
+  const todayD=today(); // setHours(0,0,0,0)済みのDate
 
   // ===== ヒーロー内の直近3件 =====
   const heroEl=document.getElementById('hero-event-list');
+  // 終日イベントもローカル0時で比較するので >= で正しく動く
   const upcoming=events.filter(e=>e.start>=todayD).slice(0,4);
   document.getElementById('stat-event').textContent=upcoming.length;
 
