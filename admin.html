@@ -253,7 +253,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           <div class="form-row">
             <div class="form-group">
               <label>カテゴリ</label>
-              <select id="meta-tag">
+              <select id="meta-tag" onchange="autoFillComment()">
                 <option value="rule">📋 規約・規程</option>
                 <option value="security">🔒 セキュリティ</option>
                 <option value="notice">📢 連絡事項</option>
@@ -270,6 +270,19 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
                 <input type="checkbox" id="meta-urgent">
                 <label for="meta-urgent">⚠ 重要（アラート表示）</label>
               </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">
+              💬 コメント <span style="font-size:10px;color:var(--text3);font-weight:400;">（一般ページのお知らせに表示されます）</span>
+            </label>
+            <div style="position:relative;">
+              <textarea id="meta-comment" rows="2"
+                placeholder="例：セキュリティ資料が更新されました。参照願います。"
+                style="width:100%;border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 12px 8px 12px;font-size:13px;outline:none;font-family:inherit;resize:vertical;line-height:1.6;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"
+              ></textarea>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;" id="comment-presets"></div>
             </div>
           </div>
           <button class="upload-btn" id="do-upload-btn" onclick="doUpload()">
@@ -790,7 +803,10 @@ async function handleFiles(files){
     pendingFiles.push({name:f.name,pdfB64,numPages:pdf.numPages,thumbData});
   }
   renderPending();
-  document.getElementById('meta-form').style.display=pendingFiles.length?'block':'none';
+  if(pendingFiles.length){
+    document.getElementById('meta-form').style.display='block';
+    autoFillComment(); // カテゴリに応じてコメントとプリセットを初期化
+  }
 }
 
 function fileToBase64(file){
@@ -840,6 +856,7 @@ async function doUpload(){
   const tag=document.getElementById('meta-tag').value;
   const date=document.getElementById('meta-date').value||new Date().toISOString().slice(0,10);
   const urgent=document.getElementById('meta-urgent').checked;
+  const comment=document.getElementById('meta-comment').value.trim();
   const btn=document.getElementById('do-upload-btn');
   btn.disabled=true; btn.innerHTML='<div class="ring"></div><span>GitHubへ保存中...</span>';
 
@@ -861,7 +878,7 @@ async function doUpload(){
       // raw.githubusercontent.com はブラウザで直接開けないのでGitHub Pages URLを使用
       const pdfUrl='https://'+GH_OWNER+'.github.io/'+GH_REPO+'/pdfs/'+encodeURIComponent(f.name);
       const id='doc_'+Date.now()+'_'+i;
-      docs.unshift({id, name:f.name, tag, date, urgent, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
+      docs.unshift({id, name:f.name, tag, date, urgent, comment, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
       document.getElementById('progbar_'+i).style.width='90%';
     }
 
@@ -880,8 +897,43 @@ async function doUpload(){
   pendingFiles=[]; renderPending();
   document.getElementById('meta-form').style.display='none';
   document.getElementById('meta-urgent').checked=false;
+  document.getElementById('meta-comment').value='';
   btn.disabled=false; btn.innerHTML='<span>✓ GitHubへアップロード</span>';
   updateSbCount();
+}
+
+// ========== コメントプリセット ==========
+const COMMENT_PRESETS={
+  security:['セキュリティ資料が更新されました。参照願います。','重要なセキュリティ情報です。必ずご確認ください。','セキュリティポリシーが改定されました。'],
+  rule:['規程が改定されました。内容をご確認ください。','新しい規約を公開しました。ご一読ください。','規程の一部を更新しました。'],
+  notice:['お知らせがあります。ご確認ください。','重要なご連絡です。内容をご確認ください。','新しい連絡事項を掲載しました。'],
+  other:['資料を更新しました。ご確認ください。','新しいドキュメントを公開しました。','内容をご確認ください。']
+};
+
+function autoFillComment(){
+  const tag=document.getElementById('meta-tag').value;
+  renderCommentPresets(tag);
+  // コメントが空の場合のみ自動入力
+  const el=document.getElementById('meta-comment');
+  if(!el.value.trim()){
+    el.value=COMMENT_PRESETS[tag]?.[0]||'';
+  }
+}
+
+function renderCommentPresets(tag){
+  const el=document.getElementById('comment-presets');
+  const presets=COMMENT_PRESETS[tag]||[];
+  el.innerHTML=presets.map(p=>`
+    <button type="button" onclick="setComment(this)"
+      style="font-size:11px;padding:3px 10px;border:0.5px solid var(--border);border-radius:20px;background:#f5f4f1;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;"
+      onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green-dd)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'"
+      data-text="${p.replace(/"/g,'&quot;')}">${p}</button>
+  `).join('');
+}
+
+function setComment(btn){
+  document.getElementById('meta-comment').value=btn.dataset.text;
 }
 
 // ========== MANAGE ==========

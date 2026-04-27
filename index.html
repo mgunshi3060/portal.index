@@ -563,6 +563,7 @@ function renderHomeNews(){
           ${d.urgent?'<span class="nbadge bs">⚠ 重要</span>':''}
         </div>
         <div class="news-title">${d.name.replace(/\.pdf$/i,'')}</div>
+        ${d.comment?`<div style="font-size:10px;color:var(--text2);margin-top:3px;line-height:1.5;">💬 ${d.comment}</div>`:''}
         <div class="news-date">${dateStr}</div>
       </div>
     </div>`;
@@ -615,6 +616,7 @@ function renderNotice(){
           ${d.urgent?'<span class="nbadge bs">⚠ 重要</span>':''}
         </div>
         <div class="notice-title">${d.name.replace(/\.pdf$/i,'')}</div>
+        ${d.comment?`<div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5;background:#f5f4f1;border-radius:5px;padding:5px 8px;">💬 ${d.comment}</div>`:''}
         <div class="notice-footer"><span>${dateStr}</span><span>${d.numPages||'?'}ページ</span></div>
       </div>
       <a class="notice-dl" href="${d.url}" download="${d.name}" onclick="event.stopPropagation()">⬇ DL</a>
