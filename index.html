@@ -349,6 +349,8 @@ const BLOG_KEY='portal_blogs';
 const CAL_ID_KEY='portal_cal_id';
 const CAL_KEY_KEY='portal_cal_key';
 const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
+const GH_OWNER='mgunshi3060';
+const GH_REPO='portal.index';
 
 let docs=[], blogs=[];
 
@@ -405,29 +407,33 @@ function todayJST(){
 }
 
 async function loadAndRenderCalendar(){
-  // 3つのURLを順に試す（キャッシュなし）
-  const urls=[
-    'https://'+GH_OWNER+'.github.io/'+GH_REPO+'/data/events.json',
-    GH_RAW+'data/events.json',
-  ];
   let loaded=false;
-  for(const url of urls){
-    try{
-      const res=await fetch(url+'?t='+Date.now(),{cache:'no-store'});
-      if(res.ok){
-        const json=await res.json();
-        if(Array.isArray(json)){
-          portalEvents=json;
-          localStorage.setItem(EVENTS_KEY,JSON.stringify(json));
-          loaded=true;
-          break;
-        }
+
+  // ① GitHub Contents API — キャッシュなし・常に最新（publicリポジトリは認証不要）
+  try{
+    const apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/data/events.json';
+    const res=await fetch(apiUrl,{
+      headers:{'Accept':'application/vnd.github.v3+json'},
+      cache:'no-store'
+    });
+    if(res.ok){
+      const meta=await res.json();
+      // content は base64 エンコード済み
+      const json=JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g,'')))));
+      if(Array.isArray(json)){
+        portalEvents=json;
+        localStorage.setItem(EVENTS_KEY,JSON.stringify(json));
+        loaded=true;
       }
-    }catch(e){ /* 次のURLを試す */ }
-  }
+    }
+  }catch(e){ console.warn('events API error:',e); }
+
+  // ② 失敗時はlocalStorageのキャッシュ
   if(!loaded){
-    try{ portalEvents=JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }catch(e){ portalEvents=[]; }
+    try{ portalEvents=JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }
+    catch(e){ portalEvents=[]; }
   }
+
   renderEvents();
 }
 
