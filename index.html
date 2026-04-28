@@ -207,8 +207,6 @@ button{font-family:inherit;}
   <button class="nav-tab active" onclick="showPage('home',this,0)">ホーム</button>
   <button class="nav-tab" onclick="showPage('notice',this,1)">お知らせ</button>
   <a class="nav-tab" href="blog.html">社内ブログ</a>
-  <button class="nav-tab" onclick="showPage('security',this,3)">セキュリティ</button>
-  <button class="nav-tab" onclick="showPage('files',this,4)">ファイル検索</button>
   <div class="nav-right">
     <a class="admin-link" href="admin.html">⚙ 管理者</a>
   </div>
@@ -226,12 +224,9 @@ button{font-family:inherit;}
     <a class="bn-tab" href="blog.html">
       <div class="bn-tab-icon">✏️</div><div class="bn-tab-label">ブログ</div>
     </a>
-    <button class="bn-tab" id="bnt-security" onclick="showPage('security',null,3)">
-      <div class="bn-tab-icon">🔒</div><div class="bn-tab-label">セキュリティ</div>
-    </button>
-    <button class="bn-tab" id="bnt-files" onclick="showPage('files',null,4)">
-      <div class="bn-tab-icon">🗂</div><div class="bn-tab-label">ファイル</div>
-    </button>
+    <a class="bn-tab" href="admin.html">
+      <div class="bn-tab-icon">⚙️</div><div class="bn-tab-label">管理者</div>
+    </a>
   </div>
 </div>
 
@@ -299,8 +294,6 @@ button{font-family:inherit;}
       <div class="ql-grid">
         <div class="ql-item" onclick="showPage('notice',null,1)"><div class="ql-icon" style="background:var(--green-l)">📋</div><div><div class="ql-label">お知らせ</div><div class="ql-sub">PDF・連絡事項</div></div></div>
         <div class="ql-item" onclick="location.href='blog.html'"><div class="ql-icon" style="background:var(--blue-l)">✏️</div><div><div class="ql-label">ブログ</div><div class="ql-sub">社内投稿</div></div></div>
-        <div class="ql-item" onclick="showPage('security',null,3)"><div class="ql-icon" style="background:var(--red-l)">🔒</div><div><div class="ql-label">セキュリティ</div><div class="ql-sub">情報・対策</div></div></div>
-        <div class="ql-item" onclick="showPage('files',null,4)"><div class="ql-icon" style="background:var(--amber-l)">🗂️</div><div><div class="ql-label">ファイル検索</div><div class="ql-sub">社内共有</div></div></div>
       </div>
     </div>
   </div>
@@ -360,8 +353,8 @@ const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
 let docs=[], blogs=[];
 
 // ===== NAVIGATION =====
-const PAGE_IDS=['home','notice','blog','security','files'];
-const BNT_IDS=['bnt-home','bnt-notice',null,'bnt-security','bnt-files'];
+const PAGE_IDS=['home','notice','blog'];
+const BNT_IDS=['bnt-home','bnt-notice',null];
 
 function showPage(id,btn,idx){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -406,27 +399,58 @@ function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
 const EVENTS_KEY='portal_events';
 let portalEvents=[];
 
+// JSTの今日日付を YYYY-MM-DD 形式で返す（UTC基準のズレ防止）
+function todayJST(){
+  const d=new Date();
+  const jst=new Date(d.getTime()+9*60*60*1000);
+  return jst.toISOString().slice(0,10);
+}
+
 async function loadAndRenderCalendar(){
-  // GitHub から events.json を取得
+  // GitHub Pages URL で取得（raw.githubusercontent.com はキャッシュが長いため使わない）
+  const pagesUrl='https://'+GH_OWNER+'.github.io/'+GH_REPO+'/data/events.json';
+  let loaded=false;
   try{
-    const res=await fetch(GH_RAW+'data/events.json?_='+Date.now());
-    if(res.ok){ portalEvents=await res.json(); localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents)); }
-    else throw new Error('fetch failed');
-  }catch(e){
+    const res=await fetch(pagesUrl+'?_='+Date.now(),{cache:'no-store'});
+    if(res.ok){
+      portalEvents=await res.json();
+      localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
+      loaded=true;
+    }
+  }catch(e){}
+
+  // Pages URL が失敗した場合 raw URL にフォールバック
+  if(!loaded){
+    try{
+      const res2=await fetch(GH_RAW+'data/events.json?_='+Date.now(),{cache:'no-store'});
+      if(res2.ok){
+        portalEvents=await res2.json();
+        localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
+        loaded=true;
+      }
+    }catch(e){}
+  }
+
+  // どちらも失敗 → localStorageのキャッシュ
+  if(!loaded){
     const r=localStorage.getItem(EVENTS_KEY);
     portalEvents=r?JSON.parse(r):[];
   }
+
   renderCalendarEvents();
 }
 
 function renderCalendarEvents(){
-  const todayD=today();
-  const todayStr=todayD.toISOString().slice(0,10);
+  const todayStr=todayJST(); // JSTで今日の日付
 
-  // 今日以降のイベントを日付順
+  // 今日以降のイベントを日付・時刻順
   const upcoming=portalEvents
     .filter(ev=>ev.date>=todayStr)
-    .sort((a,b)=>(a.date+(a.time||''))-(b.date+(b.time||'')));
+    .sort((a,b)=>{
+      const ka=a.date+(a.time?'T'+a.time:'T00:00');
+      const kb=b.date+(b.time?'T'+b.time:'T00:00');
+      return ka<kb?-1:ka>kb?1:0;
+    });
 
   document.getElementById('stat-event').textContent=upcoming.length;
 
