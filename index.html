@@ -195,11 +195,7 @@ button{font-family:inherit;}
   .blog-mini-grid{grid-template-columns:1fr;}
 }
 
-/* Google Calendar設定モーダル */
-.cal-modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(440px,96vw);padding:20px;}
-.cal-input{width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:inherit;margin-bottom:8px;transition:border-color .15s;}
-.cal-input:focus{border-color:var(--green);}
-.cal-save-btn{height:38px;background:var(--green);color:white;border:none;border-radius:var(--radius);padding:0 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;}
+/* Google Calendar設定モーダル（廃止） */
 </style>
 </head>
 <body>
@@ -236,27 +232,6 @@ button{font-family:inherit;}
     <button class="bn-tab" id="bnt-files" onclick="showPage('files',null,4)">
       <div class="bn-tab-icon">🗂</div><div class="bn-tab-label">ファイル</div>
     </button>
-  </div>
-</div>
-
-<!-- GOOGLE CALENDAR SETTINGS MODAL -->
-<div id="cal-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:16px;">
-  <div class="cal-modal-box">
-    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">📅 Googleカレンダー設定</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;">
-      Googleカレンダーの「<b>カレンダーID</b>」と「<b>APIキー</b>」を入力してください。<br>
-      <span style="color:var(--text3);">※ カレンダーを「一般公開」に設定する必要があります</span>
-    </div>
-    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">カレンダーID</div>
-    <input class="cal-input" type="text" id="cal-id-input" placeholder="xxx@group.calendar.google.com または メールアドレス">
-    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Google API キー</div>
-    <input class="cal-input" type="text" id="cal-key-input" placeholder="AIzaSy...">
-    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6;">
-      APIキー取得：Google Cloud Console → APIとサービス → 認証情報 → APIキーを作成<br>
-      有効にするAPI：Google Calendar API
-    </div>
-    <button class="cal-save-btn" onclick="saveCalSettings()">保存して反映</button>
-    <button onclick="closeCalModal()" style="width:100%;height:38px;margin-top:8px;background:none;border:0.5px solid var(--border);border-radius:var(--radius);font-size:13px;cursor:pointer;">キャンセル</button>
   </div>
 </div>
 
@@ -312,9 +287,8 @@ button{font-family:inherit;}
     <!-- RIGHT -->
     <div>
       <!-- UPCOMING EVENTS -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0">📅 直近のイベント</div>
-        <button class="cal-settings-btn" onclick="openCalModal()">⚙ 設定</button>
       </div>
       <div class="event-widget" id="event-widget-main">
         <div class="event-empty">カレンダーを設定すると<br>イベントが表示されます</div>
@@ -379,7 +353,6 @@ const CAT_BLOG={
 };
 const STORE_KEY='portal_docs';
 const BLOG_KEY='portal_blogs';
-const NAME_KEY='portal_username';
 const CAL_ID_KEY='portal_cal_id';
 const CAL_KEY_KEY='portal_cal_key';
 const GH_RAW='https://raw.githubusercontent.com/mgunshi3060/portal.index/main/';
@@ -429,113 +402,80 @@ async function loadBlogs(){
 function formatDateShort(d){ return (d.getMonth()+1)+'/'+(d.getDate()); }
 function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
 
-// ===== GOOGLE CALENDAR =====
-const CAL_ID_DEMO=''; // 設定前はデモデータを使用
-
-function getCalId(){ return localStorage.getItem(CAL_ID_KEY)||''; }
-function getCalKey(){ return localStorage.getItem(CAL_KEY_KEY)||''; }
-
-function openCalModal(){
-  document.getElementById('cal-id-input').value=getCalId();
-  document.getElementById('cal-key-input').value=getCalKey();
-  document.getElementById('cal-modal-bg').style.display='flex';
-}
-function closeCalModal(){ document.getElementById('cal-modal-bg').style.display='none'; }
-function saveCalSettings(){
-  const id=document.getElementById('cal-id-input').value.trim();
-  const key=document.getElementById('cal-key-input').value.trim();
-  localStorage.setItem(CAL_ID_KEY,id);
-  localStorage.setItem(CAL_KEY_KEY,key);
-  closeCalModal();
-  loadAndRenderCalendar();
-}
+// ===== EVENTS (GitHub events.json) =====
+const EVENTS_KEY='portal_events';
+let portalEvents=[];
 
 async function loadAndRenderCalendar(){
-  const calId=getCalId();
-  const apiKey=getCalKey();
-
-  if(!calId||!apiKey){
-    // デモデータを表示
-    renderCalendarEvents(getDemoEvents());
-    return;
-  }
-
-  const now=new Date();
-  const timeMin=now.toISOString();
-  const timeMax=new Date(now.getTime()+30*86400000).toISOString(); // 30日後まで
-  const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=10`;
-
+  // GitHub から events.json を取得
   try{
-    const res=await fetch(url);
-    if(!res.ok) throw new Error('カレンダー取得失敗: '+res.status);
-    const data=await res.json();
-    const events=(data.items||[]).map(e=>({
-      title:e.summary||'(タイトルなし)',
-      start:new Date(e.start.dateTime||e.start.date),
-      end:e.end?new Date(e.end.dateTime||e.end.date):null,
-      allDay:!!e.start.date
-    }));
-    renderCalendarEvents(events);
+    const res=await fetch(GH_RAW+'data/events.json?_='+Date.now());
+    if(res.ok){ portalEvents=await res.json(); localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents)); }
+    else throw new Error('fetch failed');
   }catch(e){
-    console.warn('Calendar error:',e);
-    renderCalendarEvents(getDemoEvents());
-    document.getElementById('hero-event-list').innerHTML='<span class="hero-loading" style="color:rgba(255,255,255,.5);">⚠ カレンダー設定を確認してください</span>';
+    const r=localStorage.getItem(EVENTS_KEY);
+    portalEvents=r?JSON.parse(r):[];
   }
+  renderCalendarEvents();
 }
 
-function getDemoEvents(){
-  // カレンダー未設定時のデモ
-  const t=new Date(); t.setHours(0,0,0,0);
-  return [
-    {title:'朝会',start:new Date(t.getTime()+0*86400000),allDay:false},
-    {title:'出勤日',start:new Date(t.getTime()+4*86400000),allDay:true},
-    {title:'臨時出社',start:new Date(t.getTime()+6*86400000),allDay:true},
-  ];
-}
-
-function renderCalendarEvents(events){
+function renderCalendarEvents(){
   const todayD=today();
+  const todayStr=todayD.toISOString().slice(0,10);
 
-  // ===== ヒーロー内の直近3件 =====
-  const heroEl=document.getElementById('hero-event-list');
-  const upcoming=events.filter(e=>e.start>=todayD).slice(0,4);
+  // 今日以降のイベントを日付順
+  const upcoming=portalEvents
+    .filter(ev=>ev.date>=todayStr)
+    .sort((a,b)=>(a.date+(a.time||''))-(b.date+(b.time||'')));
+
   document.getElementById('stat-event').textContent=upcoming.length;
 
-  if(!upcoming.length){
-    heroEl.innerHTML='<span class="hero-loading">直近30日のイベントはありません</span>';
+  // ===== ヒーロー内チップ（最大4件） =====
+  const heroEl=document.getElementById('hero-event-list');
+  const heroItems=upcoming.slice(0,4);
+  if(!heroItems.length){
+    heroEl.style.display='none';
   }else{
-    heroEl.innerHTML=upcoming.map(e=>{
-      const isToday=e.start.toDateString()===todayD.toDateString();
-      const dateLabel=isToday?'今日':formatDateShort(e.start);
-      const timeLabel=e.allDay?'終日':e.start.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="hero-event-chip">
-        <span class="hero-event-chip-date">${dateLabel}</span>
-        <span>${e.title}</span>
-        ${!e.allDay?`<span class="hero-event-chip-date">${timeLabel}</span>`:''}
-      </div>`;
-    }).join('');
+    heroEl.style.display='';
+    heroEl.innerHTML=`<div class="hero-event"><div class="hero-event-title">直近の予定</div><div class="hero-event-list">`+
+      heroItems.map(ev=>{
+        const d=new Date(ev.date);
+        const isToday=ev.date===todayStr;
+        const weekdays=['日','月','火','水','木','金','土'];
+        const dateLabel=isToday?'今日':`${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+        const timeLabel=ev.time||'終日';
+        return `<div class="hero-event-chip">
+          <span class="hero-event-chip-date">${dateLabel}</span>
+          <span>${ev.title}</span>
+          ${ev.time?`<span class="hero-event-chip-date">${timeLabel}</span>`:''}
+        </div>`;
+      }).join('')+
+    `</div></div>`;
   }
 
-  // ===== サイドウィジェット =====
+  // ===== サイドウィジェット（最大8件） =====
   const widget=document.getElementById('event-widget-main');
-  const list=events.filter(e=>e.start>=todayD).slice(0,8);
-  if(!list.length){
-    widget.innerHTML='<div class="event-empty">直近のイベントはありません</div>';
+  const sideItems=upcoming.slice(0,8);
+  if(!sideItems.length){
+    widget.innerHTML='<div class="event-empty">直近の予定はありません<br><span style="font-size:10px;color:var(--text3);">管理者ページで行事を登録できます</span></div>';
     return;
   }
-  widget.innerHTML=list.map(e=>{
-    const isToday=e.start.toDateString()===todayD.toDateString();
-    const m=(e.start.getMonth()+1)+'月';
-    const d=e.start.getDate()+'日';
-    const timeStr=e.allDay?'終日':e.start.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  widget.innerHTML=sideItems.map(ev=>{
+    const d=new Date(ev.date);
+    const isToday=ev.date===todayStr;
+    const weekdays=['日','月','火','水','木','金','土'];
+    const timeStr=ev.time||'終日';
     return `<div class="event-item">
       <div class="event-date-badge ${isToday?'event-today':''}">
-        <div class="event-date-m">${m}</div>
-        <div class="event-date-d">${e.start.getDate()}</div>
+        <div class="event-date-m">${d.getMonth()+1}月</div>
+        <div class="event-date-d">${d.getDate()}</div>
       </div>
       <div class="event-info">
-        <div class="event-name">${e.title}${isToday?' <span style="font-size:9px;background:var(--red);color:white;padding:1px 5px;border-radius:3px;font-weight:600;">今日</span>':''}</div>
-        <div class="event-time">${timeStr}</div>
+        <div class="event-name">
+          ${ev.title}
+          ${isToday?'<span style="font-size:9px;background:var(--red);color:white;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">今日</span>':''}
+        </div>
+        <div class="event-time">${timeStr}${ev.note?'　'+ev.note:''}</div>
       </div>
     </div>`;
   }).join('');

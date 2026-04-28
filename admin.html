@@ -217,6 +217,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
       <button class="sb-item active" onclick="showAdmin('upload',this)">📤 PDFアップロード</button>
       <button class="sb-item" onclick="showAdmin('manage',this)">📋 ドキュメント管理</button>
       <div class="sb-sep"></div>
+      <div class="sb-section">行事・予定</div>
+      <button class="sb-item" onclick="showAdmin('events',this)">📅 行事管理</button>
+      <div class="sb-sep"></div>
       <div class="sb-section">ブログ</div>
       <button class="sb-item" onclick="showAdmin('blog-post',this)">✏️ 新規投稿</button>
       <button class="sb-item" onclick="showAdmin('blog-manage',this)">📰 ブログ管理</button>
@@ -315,6 +318,77 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             </tr>
           </thead>
           <tbody id="manage-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- ===== EVENTS MANAGE ===== -->
+      <div class="admin-page" id="ap-events">
+        <div class="page-title">📅 行事管理</div>
+        <div class="info-box info-green">✅ 登録した行事はGitHub（data/events.json）に保存され、一般ページの「直近のイベント」に即時反映されます。</div>
+
+        <!-- 追加フォーム -->
+        <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;max-width:640px;margin-bottom:20px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);" id="event-form-title">➕ 行事を追加</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="form-group" style="grid-column:1/-1;">
+              <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">行事名 <span style="color:var(--red)">*</span></label>
+              <input type="text" id="ev-title" placeholder="例：全体会議、健康診断、防災訓練"
+                style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:inherit;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div class="form-group">
+              <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">日付 <span style="color:var(--red)">*</span></label>
+              <input type="date" id="ev-date"
+                style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div class="form-group">
+              <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">種別</label>
+              <select id="ev-type"
+                style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;background:var(--surface);transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+                <option value="allday">終日</option>
+                <option value="timed">時間指定</option>
+              </select>
+            </div>
+            <div class="form-group" id="ev-time-wrap" style="display:none;grid-column:1/-1;">
+              <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">開始時刻</label>
+              <input type="time" id="ev-time"
+                style="width:160px;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">メモ（任意）</label>
+              <input type="text" id="ev-note" placeholder="例：3F会議室、持ち物：保険証"
+                style="width:100%;height:38px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;outline:none;font-family:inherit;transition:border-color .15s;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="upload-btn" id="ev-submit-btn" onclick="submitEvent()">
+              <span id="ev-submit-label">✓ 追加する</span>
+            </button>
+            <button id="ev-cancel-btn" onclick="cancelEditEvent()" style="display:none;height:38px;padding:0 16px;border:0.5px solid var(--border);border-radius:var(--radius);background:none;font-size:13px;cursor:pointer;">キャンセル</button>
+            <span id="ev-msg" style="font-size:12px;"></span>
+          </div>
+        </div>
+
+        <!-- 一覧テーブル -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;">登録済み行事</div>
+          <button class="upload-btn" style="font-size:12px;height:34px;padding:0 14px;" onclick="loadRemoteEvents()">🔄 再読み込み</button>
+        </div>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th style="width:110px">日付</th>
+              <th>行事名</th>
+              <th style="width:70px">時刻</th>
+              <th style="min-width:120px">メモ</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="events-tbody"></tbody>
         </table>
       </div>
 
@@ -769,6 +843,7 @@ function showAdmin(id,btn){
   document.getElementById('ap-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='manage') renderManage();
+  if(id==='events'){ loadRemoteEvents(); document.getElementById('ev-date').value=new Date().toISOString().slice(0,10); }
   if(id==='portal-settings') initPortalSettings();
   if(id==='blog-manage'){ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; renderBlogManage(); }
   if(id==='github'){ const t=ghToken(); if(t) document.getElementById('gh-token-input').value=t; }
@@ -1092,6 +1167,135 @@ async function deleteBlog(id){
   renderBlogManage(); updateSbCount();
 }
 
+// ========== EVENTS MANAGEMENT ==========
+const EVENTS_KEY='portal_events';
+let portalEvents=[];
+let editingEventId=null;
+
+// 種別切り替え
+document.getElementById('ev-type').addEventListener('change',function(){
+  document.getElementById('ev-time-wrap').style.display=this.value==='timed'?'block':'none';
+});
+
+async function loadRemoteEvents(){
+  const data=await ghLoadJson('data/events.json');
+  if(data){ portalEvents=data; localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents)); }
+  else{ const r=localStorage.getItem(EVENTS_KEY); portalEvents=r?JSON.parse(r):[]; }
+  renderEventsTable();
+  updateSbCount();
+}
+
+function renderEventsTable(){
+  const tbody=document.getElementById('events-tbody');
+  // 日付順にソート
+  const sorted=[...portalEvents].sort((a,b)=>new Date(a.date+(a.time?'T'+a.time:''))-new Date(b.date+(b.time?'T'+b.time:'')));
+  if(!sorted.length){
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:32px;">行事が登録されていません</td></tr>';
+    return;
+  }
+  const todayStr=new Date().toISOString().slice(0,10);
+  tbody.innerHTML=sorted.map(ev=>{
+    const isPast=ev.date<todayStr;
+    const dateObj=new Date(ev.date);
+    const weekdays=['日','月','火','水','木','金','土'];
+    const dateLabel=`${dateObj.getMonth()+1}/${dateObj.getDate()}（${weekdays[dateObj.getDay()]}）`;
+    return `<tr style="opacity:${isPast?'.45':'1'}">
+      <td style="font-size:13px;font-weight:600;">${dateLabel}${isPast?' <span style="font-size:10px;color:var(--text3);">終了</span>':''}</td>
+      <td style="font-size:13px;font-weight:600;">${esc(ev.title)}</td>
+      <td style="font-size:12px;color:var(--text2);">${ev.time||'終日'}</td>
+      <td style="font-size:12px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(ev.note||'—')}</td>
+      <td>
+        <button class="action-btn" onclick="startEditEvent('${ev.id}')">✏ 編集</button>
+        <button class="action-btn action-del" onclick="deleteEvent('${ev.id}')">削除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function submitEvent(){
+  const title=document.getElementById('ev-title').value.trim();
+  const date=document.getElementById('ev-date').value;
+  const type=document.getElementById('ev-type').value;
+  const time=type==='timed'?document.getElementById('ev-time').value:'';
+  const note=document.getElementById('ev-note').value.trim();
+  const msg=document.getElementById('ev-msg');
+
+  if(!title){ msg.style.color='#a32d2d'; msg.textContent='行事名を入力してください'; return; }
+  if(!date){ msg.style.color='#a32d2d'; msg.textContent='日付を入力してください'; return; }
+  if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); return; }
+
+  const btn=document.getElementById('ev-submit-btn');
+  btn.disabled=true;
+  msg.style.color='var(--text3)'; msg.textContent='保存中...';
+
+  if(editingEventId){
+    // 編集モード：既存を更新
+    const ev=portalEvents.find(e=>e.id===editingEventId);
+    if(ev){ ev.title=title; ev.date=date; ev.time=time; ev.note=note; }
+  }else{
+    // 新規追加
+    const id='ev_'+Date.now();
+    portalEvents.push({id,title,date,time,note});
+  }
+
+  try{
+    await ghSaveJson('data/events.json', portalEvents, editingEventId?`Edit event: ${title}`:`Add event: ${title}`);
+    localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
+    showToast(editingEventId?'行事を更新しました ✓':'行事を追加しました ✓');
+    cancelEditEvent();
+    renderEventsTable();
+  }catch(e){
+    msg.style.color='#a32d2d'; msg.textContent='エラー: '+e.message;
+  }
+  btn.disabled=false;
+}
+
+function startEditEvent(id){
+  const ev=portalEvents.find(e=>e.id===id);
+  if(!ev) return;
+  editingEventId=id;
+  document.getElementById('ev-title').value=ev.title;
+  document.getElementById('ev-date').value=ev.date;
+  document.getElementById('ev-type').value=ev.time?'timed':'allday';
+  document.getElementById('ev-time-wrap').style.display=ev.time?'block':'none';
+  document.getElementById('ev-time').value=ev.time||'';
+  document.getElementById('ev-note').value=ev.note||'';
+  document.getElementById('ev-form-title').textContent='✏️ 行事を編集';
+  document.getElementById('ev-submit-label').textContent='✓ 更新する';
+  document.getElementById('ev-cancel-btn').style.display='inline-flex';
+  document.getElementById('ev-msg').textContent='';
+  // フォームへスクロール
+  document.getElementById('ev-title').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('ev-title').focus();
+}
+
+function cancelEditEvent(){
+  editingEventId=null;
+  document.getElementById('ev-title').value='';
+  document.getElementById('ev-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ev-type').value='allday';
+  document.getElementById('ev-time-wrap').style.display='none';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-note').value='';
+  document.getElementById('ev-form-title').textContent='➕ 行事を追加';
+  document.getElementById('ev-submit-label').textContent='✓ 追加する';
+  document.getElementById('ev-cancel-btn').style.display='none';
+  document.getElementById('ev-msg').textContent='';
+}
+
+async function deleteEvent(id){
+  const ev=portalEvents.find(e=>e.id===id);
+  if(!confirm(`「${ev?.title}」を削除しますか？`)) return;
+  portalEvents=portalEvents.filter(e=>e.id!==id);
+  try{
+    await ghSaveJson('data/events.json', portalEvents, 'Delete event: '+id);
+    localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
+    showToast('削除しました ✓');
+    renderEventsTable();
+    if(editingEventId===id) cancelEditEvent();
+  }catch(e){ showToast('削除エラー: '+e.message,'error'); }
+}
+
 // ========== UTILS ==========
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -1162,6 +1366,9 @@ async function initAdmin(){
   // ローカルキャッシュから先に表示
   const r=localStorage.getItem(STORE_KEY); docs=r?JSON.parse(r):[];
   const rb=localStorage.getItem(BLOG_KEY); blogDocs=rb?JSON.parse(rb):[];
+  const re=localStorage.getItem(EVENTS_KEY); portalEvents=re?JSON.parse(re):[];
+  // フォームの日付初期化
+  document.getElementById('ev-date').value=new Date().toISOString().slice(0,10);
   updateSbCount();
   // Tokenがあれば接続確認
   if(ghToken()){
@@ -1173,6 +1380,8 @@ async function initAdmin(){
       if(remote){ docs=remote; localStorage.setItem(STORE_KEY,JSON.stringify(docs)); }
       const remoteB=await ghLoadJson('data/blogs.json');
       if(remoteB){ blogDocs=remoteB; localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs)); }
+      const remoteE=await ghLoadJson('data/events.json');
+      if(remoteE){ portalEvents=remoteE; localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents)); }
       updateSbCount();
     }
   }else{
