@@ -395,114 +395,92 @@ async function loadBlogs(){
 function formatDateShort(d){ return (d.getMonth()+1)+'/'+(d.getDate()); }
 function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
 
-// ===== EVENTS (GitHub events.json) =====
+// ===== EVENTS =====
 const EVENTS_KEY='portal_events';
 let portalEvents=[];
 
-// JSTの今日日付を YYYY-MM-DD 形式で返す（UTC基準のズレ防止）
 function todayJST(){
-  const d=new Date();
-  const jst=new Date(d.getTime()+9*60*60*1000);
+  const jst=new Date(Date.now()+9*3600*1000);
   return jst.toISOString().slice(0,10);
 }
 
 async function loadAndRenderCalendar(){
-  // GitHub Pages URL で取得（raw.githubusercontent.com はキャッシュが長いため使わない）
-  const pagesUrl='https://'+GH_OWNER+'.github.io/'+GH_REPO+'/data/events.json';
+  // 3つのURLを順に試す（キャッシュなし）
+  const urls=[
+    'https://'+GH_OWNER+'.github.io/'+GH_REPO+'/data/events.json',
+    GH_RAW+'data/events.json',
+  ];
   let loaded=false;
-  try{
-    const res=await fetch(pagesUrl+'?_='+Date.now(),{cache:'no-store'});
-    if(res.ok){
-      portalEvents=await res.json();
-      localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
-      loaded=true;
-    }
-  }catch(e){}
-
-  // Pages URL が失敗した場合 raw URL にフォールバック
-  if(!loaded){
+  for(const url of urls){
     try{
-      const res2=await fetch(GH_RAW+'data/events.json?_='+Date.now(),{cache:'no-store'});
-      if(res2.ok){
-        portalEvents=await res2.json();
-        localStorage.setItem(EVENTS_KEY,JSON.stringify(portalEvents));
-        loaded=true;
+      const res=await fetch(url+'?t='+Date.now(),{cache:'no-store'});
+      if(res.ok){
+        const json=await res.json();
+        if(Array.isArray(json)){
+          portalEvents=json;
+          localStorage.setItem(EVENTS_KEY,JSON.stringify(json));
+          loaded=true;
+          break;
+        }
       }
-    }catch(e){}
+    }catch(e){ /* 次のURLを試す */ }
   }
-
-  // どちらも失敗 → localStorageのキャッシュ
   if(!loaded){
-    const r=localStorage.getItem(EVENTS_KEY);
-    portalEvents=r?JSON.parse(r):[];
+    try{ portalEvents=JSON.parse(localStorage.getItem(EVENTS_KEY)||'[]'); }catch(e){ portalEvents=[]; }
   }
-
-  renderCalendarEvents();
+  renderEvents();
 }
 
-function renderCalendarEvents(){
-  const todayStr=todayJST(); // JSTで今日の日付
+function renderEvents(){
+  const today=todayJST();
+  const upcoming=[...portalEvents]
+    .filter(ev=>ev.date&&ev.date>=today)
+    .sort((a,b)=>((a.date+(a.time?'T'+a.time:'T00:00'))<(b.date+(b.time?'T'+b.time:'T00:00')))?-1:1);
 
-  // 今日以降のイベントを日付・時刻順
-  const upcoming=portalEvents
-    .filter(ev=>ev.date>=todayStr)
-    .sort((a,b)=>{
-      const ka=a.date+(a.time?'T'+a.time:'T00:00');
-      const kb=b.date+(b.time?'T'+b.time:'T00:00');
-      return ka<kb?-1:ka>kb?1:0;
-    });
-
-  document.getElementById('stat-event').textContent=upcoming.length;
-
-  // ===== ヒーロー内チップ（最大4件） =====
-  const heroEl=document.getElementById('hero-event-list');
-  const heroItems=upcoming.slice(0,4);
-  if(!heroItems.length){
-    heroEl.style.display='none';
-  }else{
-    heroEl.style.display='';
-    heroEl.innerHTML=`<div class="hero-event"><div class="hero-event-title">直近の予定</div><div class="hero-event-list">`+
-      heroItems.map(ev=>{
-        const d=new Date(ev.date);
-        const isToday=ev.date===todayStr;
-        const weekdays=['日','月','火','水','木','金','土'];
-        const dateLabel=isToday?'今日':`${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
-        const timeLabel=ev.time||'終日';
-        return `<div class="hero-event-chip">
-          <span class="hero-event-chip-date">${dateLabel}</span>
-          <span>${ev.title}</span>
-          ${ev.time?`<span class="hero-event-chip-date">${timeLabel}</span>`:''}
-        </div>`;
-      }).join('')+
-    `</div></div>`;
-  }
-
-  // ===== サイドウィジェット（最大8件） =====
+  // ---- サイドウィジェット ----
   const widget=document.getElementById('event-widget-main');
-  const sideItems=upcoming.slice(0,8);
-  if(!sideItems.length){
-    widget.innerHTML='<div class="event-empty">直近の予定はありません<br><span style="font-size:10px;color:var(--text3);">管理者ページで行事を登録できます</span></div>';
-    return;
+  if(widget){
+    if(!upcoming.length){
+      widget.innerHTML='<div class="event-empty">直近の予定はありません<br><small style="color:var(--text3)">管理者ページで行事を登録できます</small></div>';
+    }else{
+      const weekdays=['日','月','火','水','木','金','土'];
+      widget.innerHTML=upcoming.slice(0,8).map(ev=>{
+        const d=new Date(ev.date+'T00:00:00+09:00');
+        const isToday=ev.date===today;
+        return `<div class="event-item">
+          <div class="event-date-badge${isToday?' event-today':''}">
+            <div class="event-date-m">${d.getMonth()+1}月</div>
+            <div class="event-date-d">${d.getDate()}</div>
+          </div>
+          <div class="event-info">
+            <div class="event-name">${ev.title||''}${isToday?' <span style="font-size:9px;background:var(--red);color:white;padding:1px 5px;border-radius:3px;margin-left:4px;">今日</span>':''}</div>
+            <div class="event-time">${ev.time||'終日'}${ev.note?' &nbsp;'+ev.note:''}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
   }
-  widget.innerHTML=sideItems.map(ev=>{
-    const d=new Date(ev.date);
-    const isToday=ev.date===todayStr;
-    const weekdays=['日','月','火','水','木','金','土'];
-    const timeStr=ev.time||'終日';
-    return `<div class="event-item">
-      <div class="event-date-badge ${isToday?'event-today':''}">
-        <div class="event-date-m">${d.getMonth()+1}月</div>
-        <div class="event-date-d">${d.getDate()}</div>
-      </div>
-      <div class="event-info">
-        <div class="event-name">
-          ${ev.title}
-          ${isToday?'<span style="font-size:9px;background:var(--red);color:white;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px;">今日</span>':''}
-        </div>
-        <div class="event-time">${timeStr}${ev.note?'　'+ev.note:''}</div>
-      </div>
-    </div>`;
-  }).join('');
+
+  // ---- ヒーローチップ ----
+  const hero=document.getElementById('hero-event-list');
+  if(hero){
+    if(!upcoming.length){
+      hero.style.display='none';
+    }else{
+      const weekdays=['日','月','火','水','木','金','土'];
+      hero.style.display='';
+      hero.innerHTML=upcoming.slice(0,3).map(ev=>{
+        const d=new Date(ev.date+'T00:00:00+09:00');
+        const isToday=ev.date===today;
+        const label=isToday?'今日':`${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+        return `<div class="hero-event-chip">
+          <span class="hero-event-chip-date">${label}</span>
+          <span>${ev.title||''}</span>
+          ${ev.time?`<span class="hero-event-chip-date">${ev.time}</span>`:''}
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 // ===== HOME RENDER =====
