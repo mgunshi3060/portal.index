@@ -450,7 +450,7 @@ function renderEvents(){
       widget.innerHTML='<div class="event-empty">直近の予定はありません<br><small style="color:var(--text3)">管理者ページで行事を登録できます</small></div>';
     }else{
       const weekdays=['日','月','火','水','木','金','土'];
-      widget.innerHTML=upcoming.slice(0,8).map(ev=>{
+      widget.innerHTML=upcoming.slice(0,5).map(ev=>{
         const d=new Date(ev.date+'T00:00:00+09:00');
         const isToday=ev.date===today;
         return `<div class="event-item">
@@ -467,26 +467,9 @@ function renderEvents(){
     }
   }
 
-  // ---- ヒーローチップ ----
+  // ---- ヒーローチップ：非表示 ----
   const hero=document.getElementById('hero-event-list');
-  if(hero){
-    if(!upcoming.length){
-      hero.style.display='none';
-    }else{
-      const weekdays=['日','月','火','水','木','金','土'];
-      hero.style.display='';
-      hero.innerHTML=upcoming.slice(0,3).map(ev=>{
-        const d=new Date(ev.date+'T00:00:00+09:00');
-        const isToday=ev.date===today;
-        const label=isToday?'今日':`${d.getMonth()+1}/${d.getDate()}(${weekdays[d.getDay()]})`;
-        return `<div class="hero-event-chip">
-          <span class="hero-event-chip-date">${label}</span>
-          <span>${ev.title||''}</span>
-          ${ev.time?`<span class="hero-event-chip-date">${ev.time}</span>`:''}
-        </div>`;
-      }).join('');
-    }
-  }
+  if(hero) hero.style.display='none';
 }
 
 // ===== HOME RENDER =====
