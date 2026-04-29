@@ -968,6 +968,14 @@ async function ghUploadPdf(filename, base64DataUrl){
   return ghFetch(path,'PUT',body);
 }
 
+// 汎用ファイルアップロード（images/ など任意パス）
+async function ghUploadFile(path, base64Data, commitMsg){
+  const sha=await ghGetSha(path);
+  const body={message:commitMsg||'Upload: '+path, content:base64Data, branch:GH_BRANCH};
+  if(sha) body.sha=sha;
+  return ghFetch(path,'PUT',body);
+}
+
 async function doUpload(){
   if(!pendingFiles.length) return;
   if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); showAdmin('github',null); return; }
@@ -1107,7 +1115,9 @@ async function toggleUrgent(id){
 }
 
 // ========== BLOG POST ==========
-let pendingBlogImg=null;
+let pendingBlogImg=null;      // base64プレビュー用（表示のみ）
+let pendingBlogImgFile=null;  // 実ファイル（GitHubアップロード用）
+let pendingBlogImgExt='jpg';
 
 function onBlogImgDragOver(e){ e.preventDefault(); document.getElementById('blog-img-zone').classList.add('drag'); }
 function onBlogImgDragLeave(){ document.getElementById('blog-img-zone').classList.remove('drag'); }
@@ -1116,18 +1126,21 @@ function onBlogImgSelect(e){ if(e.target.files[0]) handleBlogImg(e.target.files[
 
 function handleBlogImg(f){
   if(!f.type.startsWith('image/')){ showToast('画像ファイルを選択してください','error'); return; }
+  pendingBlogImgFile=f;
+  pendingBlogImgExt=f.name.split('.').pop().toLowerCase()||'jpg';
   const reader=new FileReader();
   reader.onload=ev=>{
-    pendingBlogImg=ev.target.result;
+    pendingBlogImg=ev.target.result; // プレビュー用base64
     document.getElementById('blog-img-preview').innerHTML=`
       <div style="position:relative;display:inline-block;">
         <img src="${pendingBlogImg}" style="max-width:100%;max-height:160px;border-radius:var(--radius);">
         <button onclick="clearBlogImg(event)" style="position:absolute;top:6px;right:6px;width:24px;height:24px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:50%;cursor:pointer;font-size:14px;line-height:1;">✕</button>
-      </div>`;
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;">📁 ${f.name}（${(f.size/1024).toFixed(0)}KB）</div>`;
   };
   reader.readAsDataURL(f);
 }
-function clearBlogImg(e){ if(e)e.stopPropagation(); pendingBlogImg=null; resetBlogImgPreview(); }
+function clearBlogImg(e){ if(e)e.stopPropagation(); pendingBlogImg=null; pendingBlogImgFile=null; resetBlogImgPreview(); }
 function resetBlogImgPreview(){
   document.getElementById('blog-img-preview').innerHTML=`<div style="font-size:24px;margin-bottom:4px;">🖼</div><div style="font-size:12px;color:var(--text2);">クリック または ドラッグ＆ドロップ（JPG・PNG・GIF）</div>`;
 }
@@ -1142,26 +1155,41 @@ async function submitBlogPost(){
 
   const btn=document.getElementById('blog-submit-btn');
   btn.disabled=true; btn.innerHTML='<div class="ring"></div><span>GitHubへ投稿中...</span>';
-  msg.textContent='';
+  msg.style.color='var(--text3)'; msg.textContent='';
 
   try{
     const remote=await ghLoadJson('data/blogs.json');
     if(remote) blogDocs=remote;
 
+    const blogId='blog_'+Date.now();
+    let imageUrl=null;
+
+    // ① 画像がある場合 → images/ フォルダへアップロード
+    if(pendingBlogImgFile){
+      msg.textContent='📸 画像をGitHubにアップロード中...';
+      const imgPath=`images/${blogId}.${pendingBlogImgExt}`;
+      const b64=await fileToBase64(pendingBlogImgFile);
+      const b64data=b64.includes(',') ? b64.split(',')[1] : b64;
+      await ghUploadFile(imgPath, b64data, `Add blog image: ${blogId}`);
+      // GitHub Pages URL をJSONに記録（base64は記録しない）
+      imageUrl=`https://${GH_OWNER}.github.io/${GH_REPO}/${imgPath}`;
+      msg.textContent='📝 ブログデータを保存中...';
+    }
+
     const tags=document.getElementById('b-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
     const post={
-      id:'blog_'+Date.now(),
+      id:blogId,
       title,author,content,
       category:document.getElementById('b-category').value,
       tags,
-      imageData:pendingBlogImg,
+      imageUrl,   // URLのみ（base64は保存しない）
       date:document.getElementById('b-date').value||new Date().toISOString()
     };
     blogDocs.unshift(post);
     await ghSaveJson('data/blogs.json', blogDocs, 'New blog post: '+title);
     localStorage.setItem(BLOG_KEY,JSON.stringify(blogDocs));
     showToast('ブログをGitHubに投稿しました ✓');
-    msg.style.color='var(--green)'; msg.textContent='投稿完了！一般ページのブログで確認できます。';
+    msg.style.color='var(--green)'; msg.textContent='投稿完了！';
     clearBlogForm();
   }catch(e){
     showToast('エラー: '+e.message,'error');
@@ -1174,7 +1202,7 @@ async function submitBlogPost(){
 function clearBlogForm(){
   ['b-title','b-author','b-tags','b-content'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('b-date').value=new Date().toISOString().slice(0,10);
-  clearBlogImg();
+  clearBlogImg(); pendingBlogImgFile=null;
   document.getElementById('blog-post-msg').textContent='';
 }
 
