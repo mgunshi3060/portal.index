@@ -314,7 +314,7 @@ button{font-family:inherit;}
       onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
     <button id="notice-search-clear" onclick="clearNoticeSearch()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);border:none;background:none;font-size:16px;cursor:pointer;color:var(--text3);line-height:1;">✕</button>
   </div>
-  <div class="filter-row">
+  <div class="filter-row" id="notice-filter-row">
     <button class="filter-btn active" onclick="filterNotice('all',this)">すべて</button>
     <button class="filter-btn" onclick="filterNotice('security',this)">🔒 セキュリティ</button>
     <button class="filter-btn" onclick="filterNotice('rule',this)">📋 規約・規程</button>
@@ -340,19 +340,21 @@ button{font-family:inherit;}
 <script>
 
 // ===== CONSTANTS =====
-const TAG={
+// タグはtags.jsonから動的に読み込む（デフォルト値）
+let TAG={
   security:{label:'セキュリティ',bg:'#FCEBEB',color:'#A32D2D',cls:'bs'},
   rule:{label:'規約・規程',bg:'#E1F5EE',color:'#085041',cls:'br'},
   notice:{label:'連絡事項',bg:'#FAEEDA',color:'#854F0B',cls:'bn'},
   other:{label:'その他',bg:'#E6F1FB',color:'#185FA5',cls:'bb'}
 };
-const CAT_BLOG={
+let CAT_BLOG={
   tech:{label:'💡 技術',bg:'#E6F1FB',color:'#185fa5'},
   report:{label:'🏭 現場',bg:'#E1F5EE',color:'#085041'},
   idea:{label:'💭 アイデア',bg:'#FAEEDA',color:'#854f0b'},
   event:{label:'🎉 イベント',bg:'#EEEDFE',color:'#3C3489'},
   other:{label:'その他',bg:'#f5f4f1',color:'#666'}
 };
+const TAGS_KEY='portal_tags';
 const STORE_KEY='portal_docs';
 const BLOG_KEY='portal_blogs';
 const CAL_ID_KEY='portal_cal_id';
@@ -384,6 +386,53 @@ function updateGreeting(){
   const greet=h<11?'おはようございます':h<18?'こんにちは':'こんばんは';
   document.getElementById('greeting-text').textContent=greet;
   document.getElementById('notice-sub-text').textContent='今日もよろしくお願いします';
+}
+
+// ===== TAGS (dynamic) =====
+async function loadTags(){
+  try{
+    const apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/data/tags.json';
+    const res=await fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
+    if(res.ok){
+      const meta=await res.json();
+      const json=JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g,'')))));
+      localStorage.setItem(TAGS_KEY,JSON.stringify(json));
+      applyTags(json);
+      return;
+    }
+  }catch(e){}
+  // fallback localStorage
+  try{
+    const r=localStorage.getItem(TAGS_KEY);
+    if(r) applyTags(JSON.parse(r));
+  }catch(e){}
+  // fallbackでもタブを描画
+  renderNoticeTabs();
+}
+
+function applyTags(json){
+  // お知らせタグ
+  if(json.notice&&json.notice.length){
+    TAG={};
+    json.notice.forEach(t=>{ TAG[t.id]={label:t.icon?t.icon+' '+t.label:t.label, bg:t.bg||'#f5f4f1', color:t.color||'#333', cls:t.cls||'bb'}; });
+    if(!TAG.other) TAG.other={label:'その他',bg:'#E6F1FB',color:'#185FA5',cls:'bb'};
+  }
+  // ブログカテゴリ
+  if(json.blog&&json.blog.length){
+    CAT_BLOG={};
+    json.blog.forEach(t=>{ CAT_BLOG[t.id]={label:t.icon?t.icon+' '+t.label:t.label, bg:t.bg||'#f5f4f1', color:t.color||'#333'}; });
+    if(!CAT_BLOG.other) CAT_BLOG.other={label:'その他',bg:'#f5f4f1',color:'#666'};
+  }
+  renderNoticeTabs();
+}
+
+function renderNoticeTabs(){
+  const row=document.getElementById('notice-filter-row');
+  if(!row) return;
+  row.innerHTML=`<button class="filter-btn active" onclick="filterNotice('all',this)">すべて</button>`+
+    Object.entries(TAG).map(([id,t])=>
+      `<button class="filter-btn" onclick="filterNotice('${id}',this)">${t.label}</button>`
+    ).join('');
 }
 
 // ===== DATA =====
@@ -682,6 +731,7 @@ async function refreshAll(){
 }
 
 refreshAll();
+loadTags();
 loadWeather();
 loadAndRenderCalendar();
 

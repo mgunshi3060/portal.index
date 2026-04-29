@@ -268,7 +268,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
     <input type="text" placeholder="🔍 キーワード検索..." oninput="setSearch(this.value)">
   </div>
 
-  <div class="filter-row">
+  <div class="filter-row" id="blog-filter-row">
     <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
     <button class="filter-btn" onclick="setFilter('tech',this)">💡 技術・IT</button>
     <button class="filter-btn" onclick="setFilter('report',this)">🏭 現場レポート</button>
@@ -318,7 +318,9 @@ const GH_REPO='portal.index';
 const GH_BRANCH='main';
 const GH_TOKEN_KEY='portal_gh_token';
 
-const CAT={
+const TAGS_KEY='portal_tags';
+
+let CAT={
   tech:{label:'💡 技術・IT',cls:'cat-tech'},
   report:{label:'🏭 現場レポート',cls:'cat-report'},
   idea:{label:'💭 アイデア',cls:'cat-idea'},
@@ -333,6 +335,46 @@ let pendingTags=[];
 let pendingImgData=null;
 
 const GH_RAW='https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
+
+// ===== TAGS LOAD =====
+async function loadTags(){
+  try{
+    const apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/data/tags.json';
+    const res=await fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
+    if(res.ok){
+      const meta=await res.json();
+      const json=JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g,'')))));
+      localStorage.setItem(TAGS_KEY,JSON.stringify(json));
+      applyBlogTags(json.blog);
+      return;
+    }
+  }catch(e){}
+  try{
+    const r=localStorage.getItem(TAGS_KEY);
+    if(r){ const j=JSON.parse(r); applyBlogTags(j.blog); }
+  }catch(e){}
+  renderBlogFilterTabs();
+}
+
+function applyBlogTags(tags){
+  if(!tags||!tags.length){ renderBlogFilterTabs(); return; }
+  CAT={};
+  tags.forEach(t=>{
+    CAT[t.id]={label:(t.icon?t.icon+' ':'')+t.label, bg:t.bg||'#f5f4f1', color:t.color||'#333', cls:'cat-dyn'};
+  });
+  if(!CAT.other) CAT.other={label:'その他',cls:'cat-other'};
+  renderBlogFilterTabs();
+}
+
+function renderBlogFilterTabs(){
+  const row=document.getElementById('blog-filter-row');
+  if(!row) return;
+  row.innerHTML=`<button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>`+
+    Object.entries(CAT).map(([id,c])=>
+      `<button class="filter-btn" onclick="setFilter('${id}',this)">${c.label}</button>`
+    ).join('')+
+    `<input class="search-input" type="text" placeholder="🔍 キーワード検索..." oninput="setSearch(this.value)">`;
+}
 
 // ===== DATA LOAD =====
 async function loadBlogs(){
@@ -376,7 +418,7 @@ function blogCardHTML(b){
     <div class="blog-card-cover">${coverHTML}</div>
     <div class="blog-card-body">
       <div class="blog-card-meta">
-        <span class="cat-badge ${cat.cls}">${cat.label}</span>
+        <span class="cat-badge ${cat.cls||''}" style="${cat.bg?`background:${cat.bg};color:${cat.color};`:''}">${cat.label}</span>
         ${tags}
       </div>
       <div class="blog-card-title">${escHtml(b.title)}</div>
@@ -529,6 +571,7 @@ function showToast(msg){
 
 // ===== INIT =====
 async function init(){
+  await loadTags();
   await loadBlogs();
   renderList();
   renderSidebar();

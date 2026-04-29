@@ -217,6 +217,9 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
       <button class="sb-item active" onclick="showAdmin('upload',this)">📤 PDFアップロード</button>
       <button class="sb-item" onclick="showAdmin('manage',this)">📋 ドキュメント管理</button>
       <div class="sb-sep"></div>
+      <div class="sb-section">タグ管理</div>
+      <button class="sb-item" onclick="showAdmin('tags',this)">🏷 タグ・カテゴリ管理</button>
+      <div class="sb-sep"></div>
       <div class="sb-section">行事・予定</div>
       <button class="sb-item" onclick="showAdmin('events',this)">📅 行事管理</button>
       <div class="sb-sep"></div>
@@ -319,6 +322,52 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           </thead>
           <tbody id="manage-tbody"></tbody>
         </table>
+      </div>
+
+      <!-- ===== TAGS MANAGE ===== -->
+      <div class="admin-page" id="ap-tags">
+        <div class="page-title">🏷 タグ・カテゴリ管理</div>
+        <div class="info-box info-green">✅ タグを追加・削除するとお知らせページとブログページのフィルタータブに即時反映されます。</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+          <!-- お知らせタグ -->
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:14px;">📋 お知らせタグ</div>
+            <div id="notice-tags-list" style="margin-bottom:14px;min-height:40px;"></div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <input type="text" id="nt-icon" placeholder="🔒" maxlength="4"
+                style="width:52px;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 8px;font-size:16px;text-align:center;outline:none;flex-shrink:0;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+              <input type="text" id="nt-label" placeholder="タグ名（例：社内通知）" maxlength="16"
+                style="flex:1;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;font-family:inherit;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"
+                onkeydown="if(event.key==='Enter')addNoticeTag()">
+            </div>
+            <button class="upload-btn" style="font-size:12px;height:34px;width:100%;" onclick="addNoticeTag()">＋ 追加</button>
+          </div>
+
+          <!-- ブログカテゴリ -->
+          <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:14px;">✏️ ブログカテゴリ</div>
+            <div id="blog-tags-list" style="margin-bottom:14px;min-height:40px;"></div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <input type="text" id="bt-icon" placeholder="💡" maxlength="4"
+                style="width:52px;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 8px;font-size:16px;text-align:center;outline:none;flex-shrink:0;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'">
+              <input type="text" id="bt-label" placeholder="カテゴリ名（例：お知らせ）" maxlength="16"
+                style="flex:1;height:36px;border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;font-size:13px;outline:none;font-family:inherit;"
+                onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"
+                onkeydown="if(event.key==='Enter')addBlogTag()">
+            </div>
+            <button class="upload-btn" style="font-size:12px;height:34px;width:100%;" onclick="addBlogTag()">＋ 追加</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <button class="upload-btn" onclick="saveTags()">💾 GitHubに保存</button>
+          <span id="tags-save-msg" style="font-size:12px;color:var(--text3);"></span>
+        </div>
       </div>
 
       <!-- ===== EVENTS MANAGE ===== -->
@@ -843,6 +892,7 @@ function showAdmin(id,btn){
   document.getElementById('ap-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='manage') renderManage();
+  if(id==='tags') loadTagsAdmin();
   if(id==='events'){ loadRemoteEvents(); document.getElementById('ev-date').value=new Date().toISOString().slice(0,10); }
   if(id==='portal-settings') initPortalSettings();
   if(id==='blog-manage'){ const r=localStorage.getItem(BLOG_KEY); blogDocs=r?JSON.parse(r):[]; renderBlogManage(); }
@@ -1165,6 +1215,123 @@ async function deleteBlog(id){
     showToast('削除しました ✓');
   }catch(e){ showToast('削除エラー: '+e.message,'error'); }
   renderBlogManage(); updateSbCount();
+}
+
+// ========== TAGS MANAGEMENT ==========
+const TAGS_KEY='portal_tags';
+// デフォルトタグ定義
+const DEFAULT_TAGS={
+  notice:[
+    {id:'security',icon:'🔒',label:'セキュリティ',bg:'#FCEBEB',color:'#A32D2D',cls:'bs'},
+    {id:'rule',    icon:'📋',label:'規約・規程',  bg:'#E1F5EE',color:'#085041',cls:'br'},
+    {id:'notice',  icon:'📢',label:'連絡事項',    bg:'#FAEEDA',color:'#854F0B',cls:'bn'},
+    {id:'other',   icon:'',  label:'その他',      bg:'#E6F1FB',color:'#185FA5',cls:'bb'}
+  ],
+  blog:[
+    {id:'tech',   icon:'💡',label:'技術',    bg:'#E6F1FB',color:'#185fa5'},
+    {id:'report', icon:'🏭',label:'現場',    bg:'#E1F5EE',color:'#085041'},
+    {id:'idea',   icon:'💭',label:'アイデア',bg:'#FAEEDA',color:'#854f0b'},
+    {id:'event',  icon:'🎉',label:'イベント',bg:'#EEEDFE',color:'#3C3489'},
+    {id:'other',  icon:'',  label:'その他',  bg:'#f5f4f1',color:'#666'}
+  ]
+};
+let portalTags=JSON.parse(JSON.stringify(DEFAULT_TAGS));
+
+// バッジ背景色パレット（順番に自動割り当て）
+const TAG_COLORS=[
+  {bg:'#FCEBEB',color:'#A32D2D',cls:'bs'},
+  {bg:'#E1F5EE',color:'#085041',cls:'br'},
+  {bg:'#FAEEDA',color:'#854F0B',cls:'bn'},
+  {bg:'#E6F1FB',color:'#185FA5',cls:'bb'},
+  {bg:'#EEEDFE',color:'#3C3489',cls:'bp'},
+  {bg:'#FFF3E0',color:'#7c4700',cls:'bo'},
+];
+
+async function loadTagsAdmin(){
+  try{
+    const apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/data/tags.json';
+    const res=await fetch(apiUrl,{headers:{'Accept':'application/vnd.github.v3+json'},cache:'no-store'});
+    if(res.ok){
+      const meta=await res.json();
+      const json=JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g,'')))));
+      portalTags=json;
+      localStorage.setItem(TAGS_KEY,JSON.stringify(json));
+    }
+  }catch(e){
+    const r=localStorage.getItem(TAGS_KEY);
+    if(r) portalTags=JSON.parse(r);
+  }
+  renderTagLists();
+}
+
+function renderTagLists(){
+  renderTagList('notice-tags-list', portalTags.notice, 'notice');
+  renderTagList('blog-tags-list',   portalTags.blog,   'blog');
+}
+
+function renderTagList(elId, tags, type){
+  const el=document.getElementById(elId);
+  if(!tags||!tags.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0;">タグがありません</div>';
+    return;
+  }
+  el.innerHTML=tags.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);">
+      <span style="font-size:18px;width:24px;text-align:center;">${t.icon||'　'}</span>
+      <span style="flex:1;font-size:13px;font-weight:600;">${t.label}</span>
+      <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${t.bg};color:${t.color};">プレビュー</span>
+      ${tags.length>1&&t.id!=='other'?`<button onclick="removeTag('${type}','${t.id}')"
+        style="border:none;background:none;color:#a32d2d;cursor:pointer;font-size:13px;padding:2px 6px;">✕</button>`
+        :'<span style="width:26px;"></span>'}
+    </div>`).join('');
+}
+
+function addNoticeTag(){
+  const icon=document.getElementById('nt-icon').value.trim();
+  const label=document.getElementById('nt-label').value.trim();
+  if(!label){ showToast('タグ名を入力してください','error'); return; }
+  const id='tag_'+Date.now();
+  const colorSet=TAG_COLORS[portalTags.notice.length % TAG_COLORS.length];
+  portalTags.notice.push({id, icon, label, ...colorSet});
+  document.getElementById('nt-icon').value='';
+  document.getElementById('nt-label').value='';
+  renderTagLists();
+  showToast('追加しました（GitHubに保存ボタンを押してください）');
+}
+
+function addBlogTag(){
+  const icon=document.getElementById('bt-icon').value.trim();
+  const label=document.getElementById('bt-label').value.trim();
+  if(!label){ showToast('カテゴリ名を入力してください','error'); return; }
+  const id='tag_'+Date.now();
+  const colorSet=TAG_COLORS[portalTags.blog.length % TAG_COLORS.length];
+  portalTags.blog.push({id, icon, label, bg:colorSet.bg, color:colorSet.color});
+  document.getElementById('bt-icon').value='';
+  document.getElementById('bt-label').value='';
+  renderTagLists();
+  showToast('追加しました（GitHubに保存ボタンを押してください）');
+}
+
+function removeTag(type, id){
+  if(!confirm('このタグを削除しますか？\n※このタグが付いたお知らせ・ブログは「その他」扱いになります')) return;
+  portalTags[type]=portalTags[type].filter(t=>t.id!==id);
+  renderTagLists();
+  showToast('削除しました（GitHubに保存ボタンを押してください）');
+}
+
+async function saveTags(){
+  if(!ghToken()){ showToast('GitHub Tokenを設定してください','error'); return; }
+  const msg=document.getElementById('tags-save-msg');
+  msg.textContent='保存中...'; msg.style.color='var(--text3)';
+  try{
+    await ghSaveJson('data/tags.json', portalTags, 'Update tags');
+    localStorage.setItem(TAGS_KEY,JSON.stringify(portalTags));
+    msg.textContent='✓ 保存しました'; msg.style.color='var(--green-dd)';
+    showToast('タグを保存しました ✓');
+    setTimeout(()=>msg.textContent='',3000);
+  }catch(e){
+    msg.textContent='エラー: '+e.message; msg.style.color='#a32d2d';
+  }
 }
 
 // ========== EVENTS MANAGEMENT ==========
