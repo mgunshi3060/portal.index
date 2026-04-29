@@ -260,10 +260,7 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
             <div class="form-group">
               <label>カテゴリ</label>
               <select id="meta-tag" onchange="autoFillComment()">
-                <option value="rule">📋 規約・規程</option>
-                <option value="security">🔒 セキュリティ</option>
-                <option value="notice">📢 連絡事項</option>
-                <option value="other">その他</option>
+                <option value="rule">規約・規程</option>
               </select>
             </div>
             <div class="form-group">
@@ -305,10 +302,6 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
           <input class="manage-search" type="text" placeholder="ファイル名で検索..." oninput="renderManage(this.value)">
           <select class="tag-filter" onchange="renderManage(document.querySelector('.manage-search').value,this.value)" id="manage-tag-filter">
             <option value="">すべてのカテゴリ</option>
-            <option value="rule">規約・規程</option>
-            <option value="security">セキュリティ</option>
-            <option value="notice">連絡事項</option>
-            <option value="other">その他</option>
           </select>
           <button class="upload-btn" style="white-space:nowrap;font-size:12px;height:34px;padding:0 14px;" onclick="loadRemoteDocs()">🔄 GitHubから再読み込み</button>
         </div>
@@ -1217,6 +1210,31 @@ async function deleteBlog(id){
   renderBlogManage(); updateSbCount();
 }
 
+// タグ読み込み後に全プルダウンを更新する
+function refreshTagSelects(){
+  const tags=portalTags.notice||[];
+
+  // ① アップロードフォームのカテゴリ
+  const metaTag=document.getElementById('meta-tag');
+  if(metaTag){
+    const current=metaTag.value;
+    metaTag.innerHTML=tags.map(t=>
+      `<option value="${t.id}">${t.icon?t.icon+' ':''}${t.label}</option>`
+    ).join('');
+    // 以前の選択を復元
+    if([...metaTag.options].some(o=>o.value===current)) metaTag.value=current;
+  }
+
+  // ② ドキュメント管理のフィルター
+  const manageFilter=document.getElementById('manage-tag-filter');
+  if(manageFilter){
+    const current2=manageFilter.value;
+    manageFilter.innerHTML='<option value="">すべてのカテゴリ</option>'+
+      tags.map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+    if([...manageFilter.options].some(o=>o.value===current2)) manageFilter.value=current2;
+  }
+}
+
 // ========== TAGS MANAGEMENT ==========
 const TAGS_KEY='portal_tags';
 // デフォルトタグ定義
@@ -1262,6 +1280,7 @@ async function loadTagsAdmin(){
     if(r) portalTags=JSON.parse(r);
   }
   renderTagLists();
+  refreshTagSelects();
 }
 
 function renderTagLists(){
@@ -1328,6 +1347,7 @@ async function saveTags(){
     localStorage.setItem(TAGS_KEY,JSON.stringify(portalTags));
     msg.textContent='✓ 保存しました'; msg.style.color='var(--green-dd)';
     showToast('タグを保存しました ✓');
+    refreshTagSelects();
     setTimeout(()=>msg.textContent='',3000);
   }catch(e){
     msg.textContent='エラー: '+e.message; msg.style.color='#a32d2d';
@@ -1534,6 +1554,11 @@ async function initAdmin(){
   const r=localStorage.getItem(STORE_KEY); docs=r?JSON.parse(r):[];
   const rb=localStorage.getItem(BLOG_KEY); blogDocs=rb?JSON.parse(rb):[];
   const re=localStorage.getItem(EVENTS_KEY); portalEvents=re?JSON.parse(re):[];
+  // タグをlocalStorageから復元してプルダウンを初期化
+  try{
+    const rt=localStorage.getItem(TAGS_KEY);
+    if(rt){ portalTags=JSON.parse(rt); refreshTagSelects(); }
+  }catch(e){}
   // フォームの日付初期化
   document.getElementById('ev-date').value=new Date().toISOString().slice(0,10);
   updateSbCount();
