@@ -1,0 +1,81 @@
+{
+  "notice": [
+    {
+      "id": "security",
+      "icon": "🔒",
+      "label": "セキュリティ",
+      "bg": "#FCEBEB",
+      "color": "#A32D2D",
+      "cls": "bs"
+    },
+    {
+      "id": "rule",
+      "icon": "📋",
+      "label": "規約・規程",
+      "bg": "#E1F5EE",
+      "color": "#085041",
+      "cls": "br"
+    },
+    {
+      "id": "notice",
+      "icon": "📢",
+      "label": "連絡事項",
+      "bg": "#FAEEDA",
+      "color": "#854F0B",
+      "cls": "bn"
+    },
+    {
+      "id": "other",
+      "icon": "",
+      "label": "その他",
+      "bg": "#E6F1FB",
+      "color": "#185FA5",
+      "cls": "bb"
+    },
+    {
+      "id": "tag_1777422739648",
+      "icon": "",
+      "label": "安全衛生",
+      "bg": "#EEEDFE",
+      "color": "#3C3489",
+      "cls": "bp"
+    }
+  ],
+  "blog": [
+    {
+      "id": "tech",
+      "icon": "💡",
+      "label": "技術",
+      "bg": "#E6F1FB",
+      "color": "#185fa5"
+    },
+    {
+      "id": "report",
+      "icon": "🏭",
+      "label": "現場",
+      "bg": "#E1F5EE",
+      "color": "#085041"
+    },
+    {
+      "id": "idea",
+      "icon": "💭",
+      "label": "アイデア",
+      "bg": "#FAEEDA",
+      "color": "#854f0b"
+    },
+    {
+      "id": "event",
+      "icon": "🎉",
+      "label": "イベント",
+      "bg": "#EEEDFE",
+      "color": "#3C3489"
+    },
+    {
+      "id": "other",
+      "icon": "",
+      "label": "その他",
+      "bg": "#f5f4f1",
+      "color": "#666"
+    }
+  ]
+}
