@@ -1,5 +1,17 @@
 [
   {
+    "id": "blog_1777528033570",
+    "title": "Excel",
+    "author": "郡市　将芳",
+    "content": "エクセルの動作読み込みが遅いと感じたから下記URLの記事を読点でみて\n\nhttps://forest.watch.impress.co.jp/docs/serial/offitech/2080511.html",
+    "category": "tech",
+    "tags": [
+      "デジタルスキル"
+    ],
+    "imageUrl": "https://mgunshi3060.github.io/portal.index/images/blog_1777528033570.png",
+    "date": "2026-04-30"
+  },
+  {
     "id": "blog_1777287195581",
     "title": "JAPAN DX WEEK",
     "author": "郡市",
