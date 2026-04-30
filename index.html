@@ -573,7 +573,7 @@ function renderHomeBlog(){
     const emoji={tech:'💡',report:'🏭',idea:'💭',event:'🎉',other:'📝'}[b.category]||'📝';
     return `<a href="blog.html" style="text-decoration:none;">
       <div class="blog-mini-card">
-        <div class="blog-mini-cover">${b.imageData?`<img src="${b.imageData}">`:`<span style="font-size:26px;opacity:.35;">${emoji}</span>`}</div>
+        <div class="blog-mini-cover">${(b.imageUrl||b.imageData)?`<img src="${b.imageUrl||b.imageData}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`:`<span style="font-size:26px;opacity:.35;">${emoji}</span>`}</div>
         <div class="blog-mini-body">
           <span class="blog-mini-cat" style="background:${cat.bg};color:${cat.color}">${cat.label}</span>
           <div class="blog-mini-title">${b.title}</div>
