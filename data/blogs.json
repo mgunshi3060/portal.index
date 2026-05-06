@@ -1,5 +1,17 @@
 [
   {
+    "id": "blog_1778035087813",
+    "title": "テスト",
+    "author": "郡市　将芳",
+    "content": "てすと記事モバイルから投稿",
+    "category": "tech",
+    "tags": [
+      "テスト"
+    ],
+    "imageUrl": "https://mgunshi3060.github.io/portal.index/images/blog_1778035087813.jpeg",
+    "date": "2026-05-06"
+  },
+  {
     "id": "blog_1778032159050",
     "title": "AI検定",
     "author": "郡市将芳",
