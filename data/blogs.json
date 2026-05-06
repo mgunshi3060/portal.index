@@ -1,5 +1,17 @@
 [
   {
+    "id": "blog_1778032159050",
+    "title": "AI検定",
+    "author": "郡市将芳",
+    "content": "Aiスキル検定5冠達成しました",
+    "category": "tech",
+    "tags": [
+      "試験紹介"
+    ],
+    "imageUrl": "https://mgunshi3060.github.io/portal.index/images/blog_1778032159050.jpg",
+    "date": "2026-05-06"
+  },
+  {
     "id": "blog_1777528033570",
     "title": "Excel",
     "author": "郡市　将芳",
