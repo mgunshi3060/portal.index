@@ -287,6 +287,15 @@ body{font-family:'Hiragino Sans','Yu Gothic UI',sans-serif;font-size:14px;color:
               <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;" id="comment-presets"></div>
             </div>
           </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;">
+              🔗 リンクURL <span style="font-size:10px;color:var(--text3);font-weight:400;">（任意・参照先URLがある場合）</span>
+            </label>
+            <input type="url" id="meta-link-url" placeholder="例：https://example.com/page"
+              style="width:100%;border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;outline:none;font-family:inherit;transition:border-color .15s;box-sizing:border-box;"
+              onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--border)'"
+            >
+          </div>
           <button class="upload-btn" id="do-upload-btn" onclick="doUpload()">
             <span>✓ GitHubへアップロード</span>
           </button>
@@ -982,6 +991,7 @@ async function doUpload(){
   const date=document.getElementById('meta-date').value||new Date().toISOString().slice(0,10);
   const urgent=document.getElementById('meta-urgent').checked;
   const comment=document.getElementById('meta-comment').value.trim();
+  const linkUrl=document.getElementById('meta-link-url').value.trim();
   const btn=document.getElementById('do-upload-btn');
   btn.disabled=true; btn.innerHTML='<div class="ring"></div><span>GitHubへ保存中...</span>';
 
@@ -1003,7 +1013,7 @@ async function doUpload(){
       // raw.githubusercontent.com はブラウザで直接開けないのでGitHub Pages URLを使用
       const pdfUrl='https://'+GH_OWNER+'.github.io/'+GH_REPO+'/pdfs/'+encodeURIComponent(f.name);
       const id='doc_'+Date.now()+'_'+i;
-      docs.unshift({id, name:f.name, tag, date, urgent, comment, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
+      docs.unshift({id, name:f.name, tag, date, urgent, comment, linkUrl, numPages:f.numPages, thumbData:f.thumbData, url:pdfUrl});
       document.getElementById('progbar_'+i).style.width='90%';
     }
 
@@ -1023,6 +1033,7 @@ async function doUpload(){
   document.getElementById('meta-form').style.display='none';
   document.getElementById('meta-urgent').checked=false;
   document.getElementById('meta-comment').value='';
+  document.getElementById('meta-link-url').value='';
   btn.disabled=false; btn.innerHTML='<span>✓ GitHubへアップロード</span>';
   updateSbCount();
 }
