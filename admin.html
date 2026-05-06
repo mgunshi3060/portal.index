@@ -1474,7 +1474,7 @@ function startEditEvent(id){
   document.getElementById('ev-time-wrap').style.display=ev.time?'block':'none';
   document.getElementById('ev-time').value=ev.time||'';
   document.getElementById('ev-note').value=ev.note||'';
-  document.getElementById('ev-form-title').textContent='✏️ 行事を編集';
+  document.getElementById('event-form-title').textContent='✏️ 行事を編集';
   document.getElementById('ev-submit-label').textContent='✓ 更新する';
   document.getElementById('ev-cancel-btn').style.display='inline-flex';
   document.getElementById('ev-msg').textContent='';
@@ -1491,7 +1491,7 @@ function cancelEditEvent(){
   document.getElementById('ev-time-wrap').style.display='none';
   document.getElementById('ev-time').value='';
   document.getElementById('ev-note').value='';
-  document.getElementById('ev-form-title').textContent='➕ 行事を追加';
+  document.getElementById('event-form-title').textContent='➕ 行事を追加';
   document.getElementById('ev-submit-label').textContent='✓ 追加する';
   document.getElementById('ev-cancel-btn').style.display='none';
   document.getElementById('ev-msg').textContent='';
